@@ -12,11 +12,33 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/global.css';
+import { ErrorScreen } from '@/core/ui/templates/ErrorScreen';
 import { ThemeProvider, useTheme } from '@/core/ui/theme';
+import { useAuthStore } from '@/features/auth';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* no-op */
 });
+
+/**
+ * Global error boundary — Expo Router auto-picks up this export.
+ * Catches uncaught render errors anywhere in the route tree.
+ */
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider initialMode="system">
+        <ErrorScreen
+          title="Unexpected error"
+          message={error.message || 'The app hit an unexpected error.'}
+          actionLabel="Reload"
+          onAction={retry}
+          testID="root-error-boundary"
+        />
+      </ThemeProvider>
+    </SafeAreaProvider>
+  );
+}
 
 function StatusBarWithTheme() {
   const { theme } = useTheme();
@@ -31,23 +53,33 @@ export default function RootLayout() {
     PlusJakartaSans_700Bold,
   });
 
+  const hydrate = useAuthStore((s) => s.hydrate);
+
+  useEffect(() => {
+    // Fire the (placeholder) auth hydration once on cold start.
+    hydrate();
+  }, [hydrate]);
+
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
-    // Keep native splash visible; render nothing until fonts are ready so
-    // the first paint uses the design-system typography.
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
     <SafeAreaProvider>
       <ThemeProvider initialMode="system">
         <StatusBarWithTheme />
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="auth" />
+          <Stack.Screen name="principal" />
+          <Stack.Screen name="teacher" />
+          <Stack.Screen name="shared" />
+          <Stack.Screen name="+not-found" />
+        </Stack>
       </ThemeProvider>
     </SafeAreaProvider>
   );

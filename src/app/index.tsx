@@ -1,28 +1,25 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, View } from 'react-native';
+import { Redirect } from 'expo-router';
+
+import { LoadingScreen } from '@/core/ui/templates/LoadingScreen';
+import { useAuth } from '@/features/auth';
 
 /**
- * Milestone 1 — Bootstrap shell.
- * Verifies that Expo Router, NativeWind and TypeScript are all wired.
- * No business logic lives here; feature routes land in Milestone 4+.
+ * Boot screen — the root URL `/`.
+ *
+ * Waits for the auth store to hydrate, then redirects the user to the
+ * correct stack based on their session state and role. Renders the
+ * LoadingScreen while hydrating so there is never a blank frame.
  */
-export default function BootstrapScreen() {
-  return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950">
-      <View className="flex-1 items-center justify-center px-6">
-        <Text
-          className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50"
-          testID="bootstrap-title"
-        >
-          Attendance App
-        </Text>
-        <Text
-          className="mt-2 text-sm text-neutral-500 dark:text-neutral-400"
-          testID="bootstrap-subtitle"
-        >
-          Milestone 1 · Project bootstrap ready
-        </Text>
-      </View>
-    </SafeAreaView>
-  );
+export default function BootScreen() {
+  const { isReady, isAuthenticated, role } = useAuth();
+
+  if (!isReady) return <LoadingScreen label="Preparing app…" testID="boot-loading" />;
+
+  if (!isAuthenticated) return <Redirect href="/auth/biometric" />;
+
+  if (role === 'principal') return <Redirect href="/principal/dashboard" />;
+  if (role === 'teacher') return <Redirect href="/teacher/classes" />;
+
+  // Fallback — authenticated but no role (shouldn't happen).
+  return <Redirect href="/auth/biometric" />;
 }
