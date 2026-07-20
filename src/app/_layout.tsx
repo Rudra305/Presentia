@@ -1,3 +1,10 @@
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  useFonts,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -5,23 +12,43 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/global.css';
+import { ThemeProvider, useTheme } from '@/core/ui/theme';
 
-// Keep the native splash visible until the JS root mounts.
 SplashScreen.preventAutoHideAsync().catch(() => {
-  /* no-op: safe to ignore if already hidden */
+  /* no-op */
 });
 
+function StatusBarWithTheme() {
+  const { theme } = useTheme();
+  return <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />;
+}
+
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+  });
+
   useEffect(() => {
-    // Hide splash as soon as the root tree is mounted. Milestone 2+ will gate
-    // this on font/theme readiness. No business logic here by design.
-    SplashScreen.hideAsync().catch(() => {});
-  }, []);
+    if (fontsLoaded) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    // Keep native splash visible; render nothing until fonts are ready so
+    // the first paint uses the design-system typography.
+    return null;
+  }
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false }} />
+      <ThemeProvider initialMode="system">
+        <StatusBarWithTheme />
+        <Stack screenOptions={{ headerShown: false }} />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

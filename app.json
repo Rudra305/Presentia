@@ -30,7 +30,8 @@
           "imageWidth": 96,
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
