@@ -35,7 +35,7 @@ Build a production-grade, offline-first Student Attendance System with React Nat
 ## Prioritized Backlog
 
 ### P0 — Awaiting Approval
-- **Milestone 2 — Design System Foundations** (tokens + atoms + molecules + kitchen-sink dev screen)
+- **Milestone 3 — Storage Layer** (SQLite migrations + MMKV + Secure Store adapters + column-level AES-GCM)
 
 ### P1 — Sequenced After Approval
 - Milestone 2 — Design System Foundations

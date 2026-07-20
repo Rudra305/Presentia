@@ -2,8 +2,48 @@
 
 Offline-first Student Attendance System built with **Expo (SDK 57) + React Native + TypeScript**.
 
-Current status: **Milestone 1 — Project Bootstrap ✅**
+Current status: **Milestone 2 — Design System Foundations ✅**
 Full planning package lives in [`docs/`](./docs/00_INDEX.md).
+
+---
+
+## Design System (Milestone 2)
+
+Reusable primitives live under `src/core/ui/`.
+
+```
+src/core/ui/
+├─ tokens/
+│  ├─ colors.ts       # palette + light/dark semantic maps (TS mirror of CSS vars)
+│  ├─ spacing.ts      # 4-pt scale
+│  ├─ typography.ts   # Plus Jakarta Sans + sizes/line-heights/weights
+│  ├─ radius.ts       # xs → 2xl + full
+│  ├─ elevation.ts    # platform-aware shadows
+│  └─ motion.ts       # durations + easing curves
+├─ theme/
+│  ├─ ThemeProvider.tsx   # wraps NativeWind colorScheme (system/light/dark)
+│  └─ useTheme            # { mode, theme, colors, setMode, toggle }
+├─ atoms/
+│  ├─ Text.tsx    # 9 variants × 7 tones
+│  ├─ Button.tsx  # 4 variants × 3 sizes, loading, icons, a11y
+│  ├─ Input.tsx   # label + helper/error + focus/error state
+│  ├─ Icon.tsx    # Feather wrapper, semantic tone
+│  └─ Loader.tsx  # inline or fullscreen
+└─ molecules/
+   ├─ Card.tsx    # bordered surface × padding × elevation, optional pressable
+   └─ Modal.tsx   # backdrop + centered card, 4 sizes, hardware-back
+```
+
+Import everything from a single barrel:
+
+```ts
+import { Button, Card, Input, Loader, Modal, Text, useTheme } from '@/core/ui';
+```
+
+Colors are semantic and driven by CSS custom properties in `src/global.css`.
+Toggling the theme (`useTheme().toggle()`) swaps the `:root.dark` scope which
+in turn re-resolves every NativeWind class using `bg-*`, `text-*`, or
+`border-*` tokens — no component-level dark logic required.
 
 ---
 
@@ -118,5 +158,5 @@ chore(bootstrap): initialize expo ts app with router, nativewind, eslint, pretti
 
 ## Next Milestone
 
-**Milestone 2 — Design System Foundations** (tokens + atoms + molecules).
-Do **not** start it until this bootstrap is reviewed and approved.
+**Milestone 3 — Storage Layer** (SQLite migrations + MMKV + Secure Store adapters).
+Do **not** start it until Milestone 2 is reviewed and approved.
