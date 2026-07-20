@@ -7,6 +7,44 @@ Full planning package lives in [`docs/`](./docs/00_INDEX.md).
 
 ---
 
+## Navigation (Milestone 3)
+
+File-based routing via Expo Router with four role-based stacks and typed guards.
+
+```
+src/app/
+├─ _layout.tsx           # Root providers + ErrorBoundary + Stack
+├─ index.tsx             # Boot redirect (role-aware)
+├─ +not-found.tsx        # 404
+├─ auth/                 # Public — Authentication stack
+│  ├─ biometric  pin  locked
+├─ principal/            # Protected — role === 'principal'
+│  ├─ dashboard  teachers  classes  reports
+├─ teacher/              # Protected — role === 'teacher'
+│  ├─ classes  sessions  settings
+└─ shared/               # Protected — any authenticated role
+   └─ settings  about  profile
+```
+
+Guards read from `useAuth()` (Zustand). Each `_layout.tsx` either renders a
+`<LoadingScreen>` while hydrating, `<Redirect>` when unauthorized, or the
+`<Stack>` when access is granted. Wrong-role users are bounced to their own
+home, never sent back through auth.
+
+Reusable templates (`src/core/ui/templates/`):
+
+| Template            | Purpose                                           |
+| ------------------- | ------------------------------------------------- |
+| `LoadingScreen`     | Full-viewport spinner + label                     |
+| `ErrorScreen`       | Icon + title/message + optional retry CTA         |
+| `PlaceholderScreen` | Placeholder route (icon + title + hint)           |
+| `ScreenShell`       | Safe-area + optional title/subtitle + scroll body |
+
+Root `_layout.tsx` also exports an `ErrorBoundary` component — Expo Router
+picks it up automatically for any uncaught render error in the tree.
+
+---
+
 ## Design System (Milestone 2)
 
 Reusable primitives live under `src/core/ui/`.
@@ -158,5 +196,7 @@ chore(bootstrap): initialize expo ts app with router, nativewind, eslint, pretti
 
 ## Next Milestone
 
-**Milestone 3 — Storage Layer** (SQLite migrations + MMKV + Secure Store adapters).
-Do **not** start it until Milestone 2 is reviewed and approved.
+**Milestone 4 — Storage Layer** _(originally M3, deferred one step)_
+SQLite migrations + MMKV + Secure Store adapters + column-level AES-GCM.
+Do **not** start it until the current navigation milestone is reviewed and
+approved.
