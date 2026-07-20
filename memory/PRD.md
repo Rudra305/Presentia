@@ -20,25 +20,22 @@ Build a production-grade, offline-first Student Attendance System with React Nat
 - No future milestone work leaks into current milestone.
 
 ## What's Been Implemented (with dates)
-- **2026-01** — Complete planning package produced under `/app/docs/`:
-  - `00_INDEX.md` (reading order + assumptions)
-  - `01_SRS.md` (functional + non-functional requirements)
-  - `02_ARCHITECTURE.md` (Clean Architecture, SOLID mapping, module diagram)
-  - `03_FOLDER_STRUCTURE.md` (feature-first + atomic design tree)
-  - `04_DATABASE_DESIGN.md` (SQLite schema, ER diagram, indexes, encryption)
-  - `05_NAVIGATION_FLOW.md` (Expo Router tree + guards)
-  - `06_AUTH_FLOW.md` (biometric + PIN + face recognition attendance)
-  - `07_ATTENDANCE_FLOW.md` (end-to-end capture pipeline)
-  - `08_ROADMAP.md` (12 milestones with DoD, test checklists, commit messages)
-  - `09_RISK_ANALYSIS.md` (17 risks, top-5 watchlist)
-  - `10_PERFORMANCE_STRATEGY.md` (budgets, FlashList, ML runtime)
-  - `11_SECURITY_STRATEGY.md` (STRIDE, MASVS L1, privacy)
-  - `12_OFFLINE_STRATEGY.md` (local-first, sync queue, conflict resolution)
+- **2026-01** — Complete planning package produced under `/app/docs/` (13 documents).
+- **2026-01** — **Milestone 1 — Project Bootstrap ✅**
+  - Expo SDK 57 + React 19 + React Native 0.86 + `expo-router` (typed routes)
+  - TypeScript strict (`noUncheckedIndexedAccess`, `noImplicitOverride`) + absolute imports `@/*` → `src/*`
+  - NativeWind v4 + Tailwind 3.4 (metro/babel/tailwind/global.css wired)
+  - ESLint flat config (`eslint-config-expo`) + Prettier + `.editorconfig`
+  - Environment variables via `EXPO_PUBLIC_*` prefix, typed façade at `src/config/env.ts`
+  - Splash screen configured via `expo-splash-screen`
+  - Minimal shell only: `src/app/_layout.tsx` + `src/app/index.tsx` (**no business logic** by design)
+  - Verified: `yarn typecheck` ✅ · `yarn lint` ✅ · `yarn format:check` ✅ · `expo export` ✅ (1576 modules)
+  - Git commit: `chore(bootstrap): initialize expo ts app with router, nativewind, eslint, prettier, env, splash`
 
 ## Prioritized Backlog
 
 ### P0 — Awaiting Approval
-- **Milestone 1 — Project Bootstrap** (Expo TS + Router + NativeWind + tooling)
+- **Milestone 2 — Design System Foundations** (tokens + atoms + molecules + kitchen-sink dev screen)
 
 ### P1 — Sequenced After Approval
 - Milestone 2 — Design System Foundations
