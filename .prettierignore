@@ -1,0 +1,9 @@
+node_modules
+.expo
+dist
+ios
+android
+assets
+*.tsbuildinfo
+yarn.lock
+package-lock.json
