@@ -46,3 +46,8 @@ Thumbs.db
 
 # Coverage
 coverage/
+.env.*
+*.env
+credentials.json
+*.pem
+.credentials
