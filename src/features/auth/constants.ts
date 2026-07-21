@@ -3,7 +3,7 @@
  * a single-file diff. Values follow the security plan in docs/11.
  */
 
-export const AUTH_STORAGE_KEY = 'auth:v1';
+export const AUTH_STORAGE_KEY = 'auth_v1';
 
 /** Slide-back-to-lock timeout after the user goes idle. */
 export const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
