@@ -35,7 +35,7 @@ Build a production-grade, offline-first Student Attendance System with React Nat
 ## Prioritized Backlog
 
 ### P0 — Awaiting Approval
-- **Storage Layer** (SQLite migrations + MMKV + Secure Store adapters + column-level AES-GCM) — originally M3 in the roadmap, deferred one slot after user re-prioritised navigation.
+- **Authentication** — biometric + PIN + JWT session token, using the now-available SecureStore/SQLite plumbing.
 
 ### P1 — Sequenced After Approval
 - Milestone 2 — Design System Foundations

@@ -7,6 +7,53 @@ Full planning package lives in [`docs/`](./docs/00_INDEX.md).
 
 ---
 
+## Storage Layer (Milestone 4)
+
+Offline-first SQLite with a common adapter surface for **the same SQL to
+run on device (expo-sqlite) and in tests (better-sqlite3)**.
+
+```
+src/core/storage/sqlite/
+├─ adapter.ts               # SQLiteAdapter interface (execAsync, runAsync,
+│                             getFirstAsync, getAllAsync, withTransactionAsync)
+├─ adapters/
+│  ├─ ExpoSQLiteAdapter.ts  # Production (WAL + foreign_keys ON)
+│  └─ BetterSqliteAdapter.ts# Tests (Node, better-sqlite3)
+├─ db.ts                    # getDb() singleton — opens + runs migrations
+├─ ids.ts                   # uuid() (expo-crypto → node crypto fallback)
+├─ types.ts                 # BaseEntity, NewEntity, SyncStatus
+├─ BaseRepository.ts        # Generic CRUD + audit + soft delete + sync
+├─ seed.ts                  # Idempotent dev seed
+├─ migrations/
+│  ├─ 0001_init.sql         # 10 tables (see docs/04)
+│  ├─ 0002_indexes.sql      # 14 hot-path indexes
+│  ├─ runner.ts             # Transactional runner w/ _meta.schema_version
+│  └─ index.ts              # Ordered migration list
+└─ __tests__/*.test.ts      # 27 tests, 4 suites
+```
+
+Run tests:
+
+```bash
+yarn test              # 27 tests in ~1.1s
+yarn test:watch
+yarn test:coverage
+```
+
+Schema highlights (full ER in [`docs/04_DATABASE_DESIGN.md`](./docs/04_DATABASE_DESIGN.md)):
+
+- Every entity: `id` (UUID v4, client-generated), audit (`created_at`,
+  `updated_at`, `version`), soft-delete (`deleted_at`), sync
+  (`sync_status`, `remote_id`, `last_synced_at`).
+- Enforced constraints: role CHECK on users, status/method CHECK on
+  attendance, UNIQUE (session_id, student_id), UNIQUE (tenant_id, class_id,
+  roll_no), foreign keys with CASCADE/SET NULL/RESTRICT where appropriate.
+- Indexes covering: attendance-by-session, attendance-by-student-time,
+  active-students-per-class, embeddings-per-student, sessions-by-teacher-
+  started-desc, sync-queue-scheduler.
+
+---
+
 ## Navigation (Milestone 3)
 
 File-based routing via Expo Router with four role-based stacks and typed guards.
