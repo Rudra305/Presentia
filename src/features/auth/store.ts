@@ -1,57 +1,89 @@
 import { create } from 'zustand';
 
-/**
- * Placeholder auth store.
- *
- * Real biometric + PIN authentication lands in Milestone 4 and persistence
- * (SecureStore) lands in Milestone 3 (Storage). Until then, this store keeps
- * auth state in-memory and exposes an API surface that later milestones can
- * swap for the real implementation without breaking navigation guards.
- */
+import {
+  acceptBiometricUnlock,
+  bootstrapSession,
+  enroll as apiEnroll,
+  isEnrolled as apiIsEnrolled,
+  refreshActivity,
+  signOut as apiSignOut,
+  unlockWithPin as apiUnlockWithPin,
+  type EnrollInput,
+  type Session,
+  type UnlockErr,
+  type UnlockOk,
+} from './api';
 
 export type Role = 'principal' | 'teacher';
 
-export type AuthState = {
-  /** True once the store has finished any async hydration. */
-  isReady: boolean;
-  /** True when a user session is active. */
-  isAuthenticated: boolean;
-  /** Active role — undefined when unauthenticated. */
-  role: Role | undefined;
+export type AuthStatus = 'idle' | 'ready' | 'authenticated';
 
-  /** Simulates async storage read on cold start. */
-  hydrate: () => void;
-  /** Placeholder sign-in — Milestone 4 replaces with biometric flow. */
-  signIn: (role: Role) => void;
-  /** Placeholder sign-out. */
-  signOut: () => void;
+type AuthState = {
+  status: AuthStatus;
+  session: Session | null;
+  enrolled: boolean;
+
+  hydrate: () => Promise<void>;
+  enroll: (input: EnrollInput) => Promise<Session>;
+  unlockWithPin: (pin: string) => Promise<UnlockOk | UnlockErr>;
+  unlockWithBiometric: () => Promise<UnlockOk | UnlockErr>;
+  refreshActivity: () => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
-  isReady: false,
-  isAuthenticated: false,
-  role: undefined,
+  status: 'idle',
+  session: null,
+  enrolled: false,
 
-  hydrate: () => {
-    // Simulate a fast async read; real hydration wires SecureStore + SQLite.
-    setTimeout(() => set({ isReady: true }), 0);
+  hydrate: async () => {
+    const [enrolled, session] = await Promise.all([apiIsEnrolled(), bootstrapSession()]);
+    set({ status: 'ready', enrolled, session });
+    if (session) set({ status: 'authenticated' });
   },
 
-  signIn: (role) => set({ isAuthenticated: true, role }),
+  enroll: async (input) => {
+    const session = await apiEnroll(input);
+    set({ enrolled: true, session, status: 'authenticated' });
+    return session;
+  },
 
-  signOut: () => set({ isAuthenticated: false, role: undefined }),
+  unlockWithPin: async (pin) => {
+    const result = await apiUnlockWithPin(pin);
+    if (result.ok) set({ session: result.session, status: 'authenticated' });
+    return result;
+  },
+
+  unlockWithBiometric: async () => {
+    const result = await acceptBiometricUnlock();
+    if (result.ok) set({ session: result.session, status: 'authenticated' });
+    return result;
+  },
+
+  refreshActivity: async () => {
+    await refreshActivity();
+  },
+
+  signOut: async () => {
+    await apiSignOut();
+    set({ session: null, status: 'ready', enrolled: false });
+  },
 }));
 
 /**
- * Convenience selector hook. Exposed so screens/layouts don't reach into
- * store internals; feature code should always call `useAuth()`.
+ * Selector façade used by screens/layouts. Guards read from here — never
+ * from `useAuthStore` directly — so refactoring the store shape is
+ * contained.
  */
 export function useAuth() {
-  return useAuthStore((s) => ({
-    isReady: s.isReady,
-    isAuthenticated: s.isAuthenticated,
-    role: s.role,
-    signIn: s.signIn,
-    signOut: s.signOut,
-  }));
+  const status = useAuthStore((s) => s.status);
+  const session = useAuthStore((s) => s.session);
+  const enrolled = useAuthStore((s) => s.enrolled);
+  return {
+    isReady: status !== 'idle',
+    isAuthenticated: status === 'authenticated',
+    enrolled,
+    session,
+    role: session?.role,
+  };
 }

@@ -6,6 +6,9 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^expo-crypto$': '<rootDir>/src/__mocks__/expo-crypto.js',
+    '^expo-secure-store$': '<rootDir>/src/__mocks__/expo-secure-store.js',
+    '^expo-sqlite$': '<rootDir>/src/__mocks__/expo-sqlite.js',
+    '^react-native$': '<rootDir>/src/__mocks__/react-native.js',
   },
   transform: {
     '^.+\\.(ts|tsx|js|jsx)$': [

@@ -3,11 +3,6 @@ import { Redirect, Stack } from 'expo-router';
 import { LoadingScreen } from '@/core/ui/templates/LoadingScreen';
 import { useAuth } from '@/features/auth';
 
-/**
- * Principal stack.
- * Protected — requires authentication AND role === 'principal'.
- * Teachers are redirected to their own home.
- */
 export default function PrincipalLayout() {
   const { isReady, isAuthenticated, role } = useAuth();
 
@@ -18,7 +13,9 @@ export default function PrincipalLayout() {
   return (
     <Stack screenOptions={{ headerShown: true }}>
       <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
-      <Stack.Screen name="teachers" options={{ title: 'Teachers' }} />
+      <Stack.Screen name="teachers/index" options={{ title: 'Teachers' }} />
+      <Stack.Screen name="teachers/new" options={{ title: 'Add teacher', presentation: 'modal' }} />
+      <Stack.Screen name="teachers/[id]" options={{ title: 'Edit teacher' }} />
       <Stack.Screen name="classes" options={{ title: 'Classes' }} />
       <Stack.Screen name="reports" options={{ title: 'Reports' }} />
     </Stack>

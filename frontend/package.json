@@ -1,0 +1,8 @@
+{
+  "name": "attendance-frontend-proxy",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "cd /app && CI=1 exec npx expo start --web --port ${PORT:-3000}"
+  }
+}

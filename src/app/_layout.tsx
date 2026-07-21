@@ -9,6 +9,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/global.css';
@@ -20,10 +21,6 @@ SplashScreen.preventAutoHideAsync().catch(() => {
   /* no-op */
 });
 
-/**
- * Global error boundary — Expo Router auto-picks up this export.
- * Catches uncaught render errors anywhere in the route tree.
- */
 export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
   return (
     <SafeAreaProvider>
@@ -54,11 +51,18 @@ export default function RootLayout() {
   });
 
   const hydrate = useAuthStore((s) => s.hydrate);
+  const refreshActivity = useAuthStore((s) => s.refreshActivity);
 
   useEffect(() => {
-    // Fire the (placeholder) auth hydration once on cold start.
-    hydrate();
+    void hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') void refreshActivity();
+    });
+    return () => sub.remove();
+  }, [refreshActivity]);
 
   useEffect(() => {
     if (fontsLoaded) {

@@ -20,6 +20,11 @@
       },
       "predictiveBackGestureEnabled": true
     },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
     "plugins": [
       "expo-router",
       [
@@ -31,7 +36,11 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-font",
+      [
+        "expo-local-authentication",
+        { "faceIDPermission": "Allow Attendance to use Face ID to sign in." }
+      ],
+      "expo-secure-store",
       "expo-sqlite"
     ],
     "experiments": {

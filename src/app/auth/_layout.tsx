@@ -3,10 +3,6 @@ import { Redirect, Stack } from 'expo-router';
 import { LoadingScreen } from '@/core/ui/templates/LoadingScreen';
 import { useAuth } from '@/features/auth';
 
-/**
- * Authentication stack.
- * Public — authed users are redirected to their role home.
- */
 export default function AuthLayout() {
   const { isReady, isAuthenticated, role } = useAuth();
 
@@ -19,6 +15,7 @@ export default function AuthLayout() {
 
   return (
     <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+      <Stack.Screen name="enroll" />
       <Stack.Screen name="biometric" />
       <Stack.Screen name="pin" />
       <Stack.Screen name="locked" />
