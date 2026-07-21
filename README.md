@@ -2,7 +2,7 @@
 
 Offline-first Student Attendance System built with **Expo (SDK 57) + React Native + TypeScript**.
 
-Current status: **Milestone 2 — Design System Foundations ✅**
+Current status: **Milestone 4 — SQLite Storage Layer ✅**
 Full planning package lives in [`docs/`](./docs/00_INDEX.md).
 
 ---
@@ -243,7 +243,6 @@ chore(bootstrap): initialize expo ts app with router, nativewind, eslint, pretti
 
 ## Next Milestone
 
-**Milestone 4 — Storage Layer** _(originally M3, deferred one step)_
-SQLite migrations + MMKV + Secure Store adapters + column-level AES-GCM.
-Do **not** start it until the current navigation milestone is reviewed and
-approved.
+**Milestone 5 — Authentication** (biometric + PIN with real SecureStore
+persistence and JWT session, now that storage is in place). Do **not**
+start until this SQLite layer is reviewed and approved.
