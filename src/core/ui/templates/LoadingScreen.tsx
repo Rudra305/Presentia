@@ -5,8 +5,8 @@ import { Loader } from '@/core/ui/atoms/Loader';
 import { Text } from '@/core/ui/atoms/Text';
 
 export type LoadingScreenProps = {
-  label?: string;
-  testID?: string;
+    label?: string;
+    testID?: string;
 };
 
 /**
@@ -16,17 +16,17 @@ export type LoadingScreenProps = {
  *  - Any feature screen fetching required data
  */
 export function LoadingScreen({
-  label = 'Loading…',
-  testID = 'loading-screen',
+    label = 'Loading…',
+    testID = 'loading-screen',
 }: LoadingScreenProps) {
-  return (
-    <SafeAreaView className="flex-1 bg-bg" testID={testID}>
-      <View className="flex-1 items-center justify-center gap-4">
-        <Loader size="lg" tone="primary" />
-        <Text variant="bodySm" tone="muted">
-          {label}
-        </Text>
-      </View>
-    </SafeAreaView>
-  );
+    return (
+        <SafeAreaView className="flex-1 bg-bg" testID={testID}>
+            <View className="flex-1 items-center justify-center gap-4">
+                <Loader size="lg" tone="primary" />
+                <Text variant="bodySm" tone="muted">
+                    {label}
+                </Text>
+            </View>
+        </SafeAreaView>
+    );
 }

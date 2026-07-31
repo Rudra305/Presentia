@@ -12,12 +12,12 @@ import indexesSql from './0002_indexes.sql';
  */
 
 export interface Migration {
-  version: number;
-  name: string;
-  sql: string;
+    version: number;
+    name: string;
+    sql: string;
 }
 
 export const migrations: Migration[] = [
-  { version: 1, name: 'init', sql: initSql },
-  { version: 2, name: 'indexes', sql: indexesSql },
+    { version: 1, name: 'init', sql: initSql },
+    { version: 2, name: 'indexes', sql: indexesSql },
 ];

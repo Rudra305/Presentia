@@ -1,12 +1,12 @@
 import { colorScheme, useColorScheme } from 'nativewind';
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    type ReactNode,
 } from 'react';
 
 import { darkColors, lightColors, type ThemeColors } from '@/core/ui/tokens/colors';
@@ -15,24 +15,24 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
 
 type ThemeContextValue = {
-  /** User's preference — may be 'system'. */
-  mode: ThemeMode;
-  /** Actual theme in effect right now — never 'system'. */
-  theme: ResolvedTheme;
-  /** Semantic color tokens for the resolved theme. */
-  colors: ThemeColors;
-  /** Update the user's preference. */
-  setMode: (next: ThemeMode) => void;
-  /** Convenience: flip between light and dark (system → opposite of current). */
-  toggle: () => void;
+    /** User's preference — may be 'system'. */
+    mode: ThemeMode;
+    /** Actual theme in effect right now — never 'system'. */
+    theme: ResolvedTheme;
+    /** Semantic color tokens for the resolved theme. */
+    colors: ThemeColors;
+    /** Update the user's preference. */
+    setMode: (next: ThemeMode) => void;
+    /** Convenience: flip between light and dark (system → opposite of current). */
+    toggle: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 type ProviderProps = {
-  children: ReactNode;
-  /** Initial user preference; defaults to 'system'. */
-  initialMode?: ThemeMode;
+    children: ReactNode;
+    /** Initial user preference; defaults to 'system'. */
+    initialMode?: ThemeMode;
 };
 
 /**
@@ -47,46 +47,46 @@ type ProviderProps = {
  * Milestone 3 (storage layer). Until then, the app boots in `system` mode.
  */
 export function ThemeProvider({ children, initialMode = 'system' }: ProviderProps) {
-  const [mode, setModeState] = useState<ThemeMode>(initialMode);
-  const { colorScheme: activeScheme } = useColorScheme();
+    const [mode, setModeState] = useState<ThemeMode>(initialMode);
+    const { colorScheme: activeScheme } = useColorScheme();
 
-  // Apply the preference to NativeWind whenever it changes.
-  useEffect(() => {
-    colorScheme.set(mode);
-  }, [mode]);
+    // Apply the preference to NativeWind whenever it changes.
+    useEffect(() => {
+        colorScheme.set(mode);
+    }, [mode]);
 
-  const setMode = useCallback((next: ThemeMode) => {
-    setModeState(next);
-  }, []);
+    const setMode = useCallback((next: ThemeMode) => {
+        setModeState(next);
+    }, []);
 
-  const toggle = useCallback(() => {
-    setModeState((current) => {
-      if (current === 'light') return 'dark';
-      if (current === 'dark') return 'light';
-      return activeScheme === 'dark' ? 'light' : 'dark';
-    });
-  }, [activeScheme]);
+    const toggle = useCallback(() => {
+        setModeState((current) => {
+            if (current === 'light') return 'dark';
+            if (current === 'dark') return 'light';
+            return activeScheme === 'dark' ? 'light' : 'dark';
+        });
+    }, [activeScheme]);
 
-  const resolved: ResolvedTheme = activeScheme === 'dark' ? 'dark' : 'light';
+    const resolved: ResolvedTheme = activeScheme === 'dark' ? 'dark' : 'light';
 
-  const value = useMemo<ThemeContextValue>(
-    () => ({
-      mode,
-      theme: resolved,
-      colors: resolved === 'dark' ? darkColors : lightColors,
-      setMode,
-      toggle,
-    }),
-    [mode, resolved, setMode, toggle],
-  );
+    const value = useMemo<ThemeContextValue>(
+        () => ({
+            mode,
+            theme: resolved,
+            colors: resolved === 'dark' ? darkColors : lightColors,
+            setMode,
+            toggle,
+        }),
+        [mode, resolved, setMode, toggle],
+    );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+    return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme(): ThemeContextValue {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) {
-    throw new Error('useTheme must be used inside <ThemeProvider>.');
-  }
-  return ctx;
+    const ctx = useContext(ThemeContext);
+    if (!ctx) {
+        throw new Error('useTheme must be used inside <ThemeProvider>.');
+    }
+    return ctx;
 }

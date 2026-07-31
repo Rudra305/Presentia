@@ -10,12 +10,12 @@ export type IconName = ComponentProps<typeof Feather>['name'];
 export type IconTone = keyof ThemeColors | 'inherit';
 
 export type IconProps = {
-  name: IconName;
-  size?: number;
-  /** Semantic token name from ThemeColors, or 'inherit' to use the passed `color`. */
-  tone?: IconTone;
-  color?: string;
-  testID?: string;
+    name: IconName;
+    size?: number;
+    /** Semantic token name from ThemeColors, or 'inherit' to use the passed `color`. */
+    tone?: IconTone;
+    color?: string;
+    testID?: string;
 };
 
 /**
@@ -24,9 +24,9 @@ export type IconProps = {
  * one place, if needed.
  */
 export function Icon({ name, size = 20, tone = 'fg', color, testID }: IconProps) {
-  const { colors } = useTheme();
-  const resolvedColor =
-    tone === 'inherit' ? (color ?? colors.fg) : colors[tone as keyof ThemeColors];
+    const { colors } = useTheme();
+    const resolvedColor =
+        tone === 'inherit' ? (color ?? colors.fg) : colors[tone as keyof ThemeColors];
 
-  return <Feather name={name} size={size} color={resolvedColor} testID={testID} />;
+    return <Feather name={name} size={size} color={resolvedColor} testID={testID} />;
 }

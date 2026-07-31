@@ -16,21 +16,21 @@ export type SqlValue = string | number | boolean | null | Uint8Array;
 export type SqlRow = Record<string, SqlValue>;
 
 export interface SQLiteAdapter {
-  /** Execute one or more statements (no bind params, no return). */
-  execAsync(sql: string): Promise<void>;
+    /** Execute one or more statements (no bind params, no return). */
+    execAsync(sql: string): Promise<void>;
 
-  /** Run a single statement with bind params; returns { changes, lastInsertRowId }. */
-  runAsync(sql: string, params?: SqlValue[]): Promise<{ changes: number }>;
+    /** Run a single statement with bind params; returns { changes, lastInsertRowId }. */
+    runAsync(sql: string, params?: SqlValue[]): Promise<{ changes: number }>;
 
-  /** Query returning first row or null. */
-  getFirstAsync<T extends SqlRow = SqlRow>(sql: string, params?: SqlValue[]): Promise<T | null>;
+    /** Query returning first row or null. */
+    getFirstAsync<T extends SqlRow = SqlRow>(sql: string, params?: SqlValue[]): Promise<T | null>;
 
-  /** Query returning all rows. */
-  getAllAsync<T extends SqlRow = SqlRow>(sql: string, params?: SqlValue[]): Promise<T[]>;
+    /** Query returning all rows. */
+    getAllAsync<T extends SqlRow = SqlRow>(sql: string, params?: SqlValue[]): Promise<T[]>;
 
-  /** Wrap `fn` in a transaction; rolls back on throw. */
-  withTransactionAsync<T>(fn: () => Promise<T>): Promise<T>;
+    /** Wrap `fn` in a transaction; rolls back on throw. */
+    withTransactionAsync<T>(fn: () => Promise<T>): Promise<T>;
 
-  /** Close the underlying handle. */
-  closeAsync(): Promise<void>;
+    /** Close the underlying handle. */
+    closeAsync(): Promise<void>;
 }

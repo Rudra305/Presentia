@@ -11,40 +11,40 @@
  */
 
 @layer base {
-  :root {
-    --bg: 255 255 255;
-    --bg-elevated: 248 250 252;
-    --fg: 15 23 42;
-    --fg-muted: 100 116 139;
-    --fg-subtle: 148 163 184;
-    --border: 226 232 240;
-    --border-strong: 203 213 225;
-    --card: 255 255 255;
-    --primary: 15 118 110;
-    --primary-fg: 255 255 255;
-    --danger: 220 38 38;
-    --danger-fg: 255 255 255;
-    --success: 5 150 105;
-    --warning: 217 119 6;
-    --overlay: 15 23 42;
-  }
+    :root {
+        --bg: 255 255 255;
+        --bg-elevated: 248 250 252;
+        --fg: 15 23 42;
+        --fg-muted: 100 116 139;
+        --fg-subtle: 148 163 184;
+        --border: 226 232 240;
+        --border-strong: 203 213 225;
+        --card: 255 255 255;
+        --primary: 15 118 110;
+        --primary-fg: 255 255 255;
+        --danger: 220 38 38;
+        --danger-fg: 255 255 255;
+        --success: 5 150 105;
+        --warning: 217 119 6;
+        --overlay: 15 23 42;
+    }
 
-  .dark:root,
-  :root.dark {
-    --bg: 2 6 23;
-    --bg-elevated: 15 23 42;
-    --fg: 248 250 252;
-    --fg-muted: 148 163 184;
-    --fg-subtle: 100 116 139;
-    --border: 30 41 59;
-    --border-strong: 51 65 85;
-    --card: 15 23 42;
-    --primary: 45 212 191;
-    --primary-fg: 2 6 23;
-    --danger: 248 113 113;
-    --danger-fg: 2 6 23;
-    --success: 52 211 153;
-    --warning: 251 191 36;
-    --overlay: 2 6 23;
-  }
+    .dark:root,
+    :root.dark {
+        --bg: 2 6 23;
+        --bg-elevated: 15 23 42;
+        --fg: 248 250 252;
+        --fg-muted: 148 163 184;
+        --fg-subtle: 100 116 139;
+        --border: 30 41 59;
+        --border-strong: 51 65 85;
+        --card: 15 23 42;
+        --primary: 45 212 191;
+        --primary-fg: 2 6 23;
+        --danger: 248 113 113;
+        --danger-fg: 2 6 23;
+        --success: 52 211 153;
+        --warning: 251 191 36;
+        --overlay: 2 6 23;
+    }
 }

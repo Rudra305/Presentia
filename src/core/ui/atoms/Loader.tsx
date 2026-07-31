@@ -7,17 +7,17 @@ export type LoaderSize = 'sm' | 'md' | 'lg';
 export type LoaderTone = 'primary' | 'default' | 'inverse';
 
 const RN_SIZE: Record<LoaderSize, 'small' | 'large'> = {
-  sm: 'small',
-  md: 'small',
-  lg: 'large',
+    sm: 'small',
+    md: 'small',
+    lg: 'large',
 };
 
 export type LoaderProps = {
-  size?: LoaderSize;
-  tone?: LoaderTone;
-  label?: string;
-  fullscreen?: boolean;
-  testID?: string;
+    size?: LoaderSize;
+    tone?: LoaderTone;
+    label?: string;
+    fullscreen?: boolean;
+    testID?: string;
 };
 
 /**
@@ -28,32 +28,32 @@ export type LoaderProps = {
  *    root of the app to avoid overlaying the whole tree accidentally).
  */
 export function Loader({
-  size = 'md',
-  tone = 'primary',
-  label,
-  fullscreen = false,
-  testID,
+    size = 'md',
+    tone = 'primary',
+    label,
+    fullscreen = false,
+    testID,
 }: LoaderProps) {
-  const { colors } = useTheme();
-  const color =
-    tone === 'primary' ? colors.primary : tone === 'inverse' ? colors.primaryFg : colors.fg;
+    const { colors } = useTheme();
+    const color =
+        tone === 'primary' ? colors.primary : tone === 'inverse' ? colors.primaryFg : colors.fg;
 
-  const content = (
-    <View className="flex-row items-center gap-2" testID={testID}>
-      <ActivityIndicator size={RN_SIZE[size]} color={color} />
-      {label ? (
-        <Text variant="bodySm" tone={tone === 'inverse' ? 'inverse' : 'muted'}>
-          {label}
-        </Text>
-      ) : null}
-    </View>
-  );
+    const content = (
+        <View className="flex-row items-center gap-2" testID={testID}>
+            <ActivityIndicator size={RN_SIZE[size]} color={color} />
+            {label ? (
+                <Text variant="bodySm" tone={tone === 'inverse' ? 'inverse' : 'muted'}>
+                    {label}
+                </Text>
+            ) : null}
+        </View>
+    );
 
-  if (!fullscreen) return content;
+    if (!fullscreen) return content;
 
-  return (
-    <View className="flex-1 items-center justify-center" testID={testID ?? 'loader-fullscreen'}>
-      {content}
-    </View>
-  );
+    return (
+        <View className="flex-1 items-center justify-center" testID={testID ?? 'loader-fullscreen'}>
+            {content}
+        </View>
+    );
 }

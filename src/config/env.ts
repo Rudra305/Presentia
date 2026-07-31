@@ -16,12 +16,12 @@ const RAW_APP_ENV = process.env.EXPO_PUBLIC_APP_ENV;
 const RAW_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 function toAppEnv(raw: string | undefined): AppEnv {
-  return raw === 'staging' || raw === 'production' ? raw : 'development';
+    return raw === 'staging' || raw === 'production' ? raw : 'development';
 }
 
 export const env = Object.freeze({
-  appEnv: toAppEnv(RAW_APP_ENV),
-  apiBaseUrl: RAW_API_BASE_URL ?? '',
+    appEnv: toAppEnv(RAW_APP_ENV),
+    apiBaseUrl: RAW_API_BASE_URL ?? '',
 });
 
 export const isDev = env.appEnv === 'development';
