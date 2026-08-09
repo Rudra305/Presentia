@@ -148,6 +148,13 @@ export default function PrincipalDashboardScreen() {
                             testID="quick-student-roster"
                         />
                         <QuickAction
+                            icon="camera"
+                            label="Take Attendance (My Classes)"
+                            hint="Start live face attendance for your assigned classes"
+                            onPress={() => router.push('/teacher/sessions')}
+                            testID="quick-take-attendance"
+                        />
+                        <QuickAction
                             icon="bar-chart-2"
                             label="View reports"
                             hint="Attendance trends and insights"

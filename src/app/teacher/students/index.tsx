@@ -109,7 +109,7 @@ export default function TeacherStudentsScreen() {
     return (
         <View className="flex-1 bg-bg p-4">
             {/* Search & Actions Header */}
-            <View className="flex-row items-center space-x-2 mb-3">
+            <View className="flex-row items-center gap-2 mb-3">
                 <View className="flex-1">
                     <Input
                         placeholder="Search by name or roll no..."
@@ -118,7 +118,12 @@ export default function TeacherStudentsScreen() {
                         leftIcon="search"
                     />
                 </View>
-                <Button label="+ Add" onPress={() => setIsWizardOpen(true)} className="mb-4 ml-2" />
+                <Button
+                    label="Add"
+                    leftIcon="plus"
+                    onPress={() => setIsWizardOpen(true)}
+                    testID="add-student-btn"
+                />
             </View>
 
             {/* Class Filter Pills */}

@@ -137,6 +137,13 @@ export class ClassRepo extends BaseRepository<ClassEntity> {
     async assignTeacher(classId: string, teacherId: string | null): Promise<void> {
         await this.update(classId, { teacherId });
     }
+
+    /** Find all classes assigned to a specific teacher. */
+    async listByTeacher(teacherId: string): Promise<ClassEntity[]> {
+        const sql = `SELECT * FROM classes WHERE teacher_id = ? AND deleted_at IS NULL ORDER BY name ASC;`;
+        const rows = await this.db.getAllAsync<Record<string, SqlValue>>(sql, [teacherId]);
+        return rows.map((r) => this.fromRow(r));
+    }
 }
 
 /** Convenience factory for ClassRepo. */

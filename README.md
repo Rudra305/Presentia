@@ -1,137 +1,180 @@
-# Attendance App
+# Student Attendance Mobile Application
 
-Offline-first Student Attendance System built with **Expo (SDK 54) + React Native + TypeScript**.
+Offline-first, on-device AI-powered Student Attendance System built with **Expo (SDK 54) + React Native 0.81 + TypeScript**.
 
-Current status: **Milestone 6 — Student Management & Face Enrollment Wizard ✅**
-Full planning package lives in [`docs/`](./docs/00_INDEX.md).
+Current Status: **Milestone 9 — Offline Reports & Analytics Completed ✅**  
+Full Roadmap & Architecture Specifications live in [`docs/`](./docs/00_INDEX.md).
 
 ---
 
-## Student Management & Face Enrollment (Milestone 6)
+## 🚀 Quick Start & Development Setup Guide
 
-Full CRUD for student records, class roster filtering, duplicate roll number validation, clean ML ports (`FaceDetector`, `FaceEmbedder`) with stub implementations, and interactive 3-step face vector sample enrollment wizard.
+### Prerequisites
 
-```
-src/core/ml/
-├─ types.ts              # Core ML interfaces (FaceDetector, FaceEmbedder, FaceEmbedding, FaceDetectionResult)
-├─ stub.ts               # Stub implementations & cosine similarity helper
-├─ index.ts              # Barrel exports
-└─ __tests__/stub.test.ts# Unit tests for ML detector, embedder & vector math (5 tests)
+Before running the application, make sure your development environment includes:
 
-src/features/students/
-├─ repo.ts               # StudentRepo extending BaseRepository (listWithDetails, search, checkRollNoUnique, createWithEmbeddings)
-├─ schemas.ts            # Zod validation schema (studentFormSchema)
-├─ StudentCard.tsx       # Roster item card component with enrollment status badges
-├─ EnrollmentWizard.tsx  # 3-step student enrollment wizard modal with stub face sample capture
-├─ index.ts              # Barrel exports
-└─ __tests__/repo.test.ts# Jest unit tests with SQLite in-memory adapter (5 tests)
+1. **Node.js**: v18.0.0 or higher (`node -v`)
+2. **Package Manager**: `npm` or `yarn`
+3. **Android Development Tools**:
+    - Android Studio with Android SDK (API 34/35) & Build Tools.
+    - `ANDROID_HOME` set in system Environment Variables (e.g. `C:\Users\<User>\AppData\Local\Android\Sdk`).
+    - ADB added to PATH (`platform-tools`).
 
-src/app/teacher/students/
-└─ index.tsx             # Teacher student roster screen with search, class filter pills & enrollment trigger
+---
 
-src/app/principal/students/
-└─ index.tsx             # Shared principal access to student roster & enrollment wizard
-```
-
-Run tests:
+### Step-by-Step Installation
 
 ```bash
-npm test              # 60 tests in 10 test suites passing
-npm run typecheck     # tsc --noEmit (strict)
-npm run lint          # ESLint flat config
-```
+# 1. Clone the repository
+git clone https://github.com/Rudra305/student_attendance.git
+cd student_attendance
 
----
-
-## Class Management (Phase 5)
-
-Full CRUD for institution classes, teacher assignment, and dynamic student count aggregations.
-
-```
-src/features/classes/
-├─ repo.ts               # ClassRepo extending BaseRepository (findWithDetails, search, assignTeacher)
-├─ schemas.ts            # Zod validation schema (classFormSchema, ClassFormValues)
-├─ ClassForm.tsx         # Reusable form component with teacher selector tile strip
-├─ index.ts              # Barrel exports
-└─ __tests__/repo.test.ts# Jest unit tests with SQLite in-memory adapter
-```
-
----
-
-## Storage Layer (Phase 4)
-
-Offline-first SQLite with a common adapter surface for **the same SQL to run on device (expo-sqlite) and in tests (better-sqlite3)**.
-
-```
-src/core/storage/sqlite/
-├─ adapter.ts               # SQLiteAdapter interface
-├─ adapters/
-│  ├─ ExpoSQLiteAdapter.ts  # Production (WAL + foreign_keys ON)
-│  └─ BetterSqliteAdapter.ts# Tests (Node, better-sqlite3)
-├─ db.ts                    # getDb() singleton — opens + runs migrations
-├─ BaseRepository.ts        # Generic CRUD + audit + soft delete + sync
-└─ migrations/
-   ├─ 0001_init.sql         # 10 tables
-   └─ 0002_indexes.sql      # 14 hot-path indexes
-```
-
----
-
-## Navigation (Phase 3)
-
-File-based routing via Expo Router with four role-based stacks and typed guards.
-
-```
-src/app/
-├─ _layout.tsx           # Root providers + ErrorBoundary + Stack
-├─ index.tsx             # Boot redirect (role-aware)
-├─ +not-found.tsx        # 404
-├─ auth/                 # Public — Authentication stack
-├─ principal/            # Protected — role === 'principal' (dashboard, teachers, classes, students, reports)
-├─ teacher/              # Protected — role === 'teacher' (classes, students, sessions, settings)
-└─ shared/               # Protected — any authenticated role
-```
-
----
-
-## Quick Start
-
-```bash
-# 1. Install dependencies
+# 2. Install dependencies
 npm install
 
-# 2. Copy env template
+# 3. Copy Environment Configuration
 cp .env.example .env
-
-# 3. Start Metro
-npm start           # then press i / a / w
 ```
-
-## Scripts
-
-| Command                           | What it does                  |
-| --------------------------------- | ----------------------------- |
-| `npm start`                       | Start Metro / Expo dev server |
-| `npm run android` / `npm run ios` | Open on simulator/emulator    |
-| `npm run lint`                    | Run ESLint (flat config)      |
-| `npm run format`                  | Prettier write all sources    |
-| `npm run typecheck`               | `tsc --noEmit`                |
-| `npm test`                        | Run Jest unit test suite      |
 
 ---
 
-## Testing Checklist — Milestone 6
+### 📱 Running on Physical Android Device via USB Debugging
 
-- [x] `FaceDetector` & `FaceEmbedder` ports defined with `StubFaceDetector` & `StubFaceEmbedder` implementations.
-- [x] Cosine similarity helper verified for unit normalized Float32Array vectors.
-- [x] `StudentRepo.checkRollNoUnique()` prevents duplicate roll numbers per class.
-- [x] `StudentRepo.createWithEmbeddings()` transactionally saves student record and 3 face embeddings into SQLite.
-- [x] `StudentCard` displays enrollment status badges (Enrolled 3/3, Incomplete, Not Enrolled).
-- [x] `EnrollmentWizard` leads user through Step 1 (Info) -> Step 2 (3 Face Samples) -> Step 3 (Confirmation).
-- [x] `npm test` passes 60/60 unit tests across 10 suites.
-- [x] `npm run typecheck` passes with zero errors.
-- [x] `npm run lint` passes cleanly.
+1. **Enable USB Debugging on your Phone:**
+    - Go to **Settings $\rightarrow$ About Phone $\rightarrow$ Tap "Build Number" 7 times** to unlock Developer Options.
+    - Go to **Developer Options $\rightarrow$ Enable "USB Debugging"**.
+2. **Connect Device via USB Cable:**
+    - Connect your physical Android phone to your PC via USB cable.
+    - Accept the _"Allow USB Debugging?"_ prompt on your phone screen.
+3. **Verify ADB Connection:**
 
-## Recommended Next Phase
+    ```bash
+    adb devices
+    ```
 
-**Milestone 7 — ML Integration (Real Face Detector + Embedder)** (Replacing stubs with on-device MediaPipe/MLKit face detector & quantized TFLite embedder models via vision-camera frame processors).
+    _(Your device serial number e.g. `CPH2401` should appear listed as `device`)_.
+
+4. **Launch Application:**
+    ```bash
+    npm run android
+    # or
+    yarn android
+    ```
+    _This automatically builds the native APK and deploys it directly to your connected physical Android phone!_
+
+---
+
+### 🔍 Debugging & Inspection Tools
+
+- **Visual Element Inspector on Phone:**
+  Run `adb shell input keyevent 82` (or shake phone) $\rightarrow$ Tap **"Toggle Element Inspector"** on your phone screen to inspect layout dimensions, padding, margins, and Flexbox bounds directly on-device.
+- **React Native Hermes Inspector:**
+  Press **`j`** in the terminal running Metro to launch dedicated Chrome Hermes DevTools for JS debugging, console logs, and performance profiling.
+- **Chrome USB Remote Debugging:**
+  Open `chrome://inspect` in Google Chrome on your PC to view native webviews and device logs.
+
+---
+
+## 🛠️ Complete Feature Progress (Milestones 1 – 9)
+
+### Milestone 1 — Project Bootstrap
+
+- Expo SDK 54, React Native 0.81, TypeScript (strict mode).
+- NativeWind v4 + Tailwind CSS integration.
+- ESLint + Prettier + Jest testing framework.
+
+### Milestone 2 — Design System & Theme Foundations
+
+- Atomic Design Structure (`atoms`, `molecules`, `templates`).
+- Custom dynamic theme system supporting **Light**, **Dark**, and **System** modes.
+- Semantic tokens for background (`bg`), text (`fg`), primary (`primary`), and borders (`border`).
+
+### Milestone 3 — Encrypted Storage Layer
+
+- Dual-adapter SQLite storage engine:
+    - **ExpoSQLiteAdapter** (`expo-sqlite`) for production builds on Android/iOS (WAL mode + foreign key constraints enabled).
+    - **BetterSqliteAdapter** (`better-sqlite3`) for fast Node Jest unit testing.
+- Automated database schema migrations (`0001_init.sql`).
+
+### Milestone 4 — Authentication & Security
+
+- Dual offline login via **Biometric (Fingerprint/FaceID)** and **6-Digit Security PIN**.
+- Lockout Policy (3 failed biometric attempts $\rightarrow$ PIN fallback; 5 failed PIN attempts $\rightarrow$ 60-second lockout).
+- Role-based access guards (`principal` vs `teacher`).
+
+### Milestone 5 — User & Class Management (Principal)
+
+- Principal Dashboard with real-time class, teacher, and student statistics.
+- Teacher CRUD (Create, Edit, Enable/Disable teacher accounts).
+- Class CRUD (Create class, assign/unassign teacher, grade & section allocation).
+
+### Milestone 6 — Student Management & Auto-Roll Numbers
+
+- Student Roster with search and class filtering.
+- **Auto-Increment Roll Numbers**: Automatically calculates next available roll number (`MAX(roll_no) + 1`) per class.
+- 3-Step Student Enrollment Wizard modal.
+
+### Milestone 7 — ML Camera & Real Face Pipeline
+
+- Live camera viewfinder (`expo-camera`) with target circle overlay and camera flip.
+- `RealFaceDetector` and `RealFaceEmbedder` ports.
+- On-device face sample capture (3 samples per student required for enrollment).
+
+### Milestone 8 — Live Session & Attendance Capture
+
+- **Sessions Repository (`SessionRepo`)**: Idempotent attendance marking (`ON CONFLICT(session_id, student_id)`), active session lookup, and session closure.
+- **Vector Matcher (`matcher.ts`)**: Real-time Cosine Similarity matcher ($\ge 0.85$ auto-marks Present; $0.72 - 0.84$ prompts candidate match).
+- **Live Camera Attendance Screen**: Real-time frame recognition with visual toast notifications (`✅ Ananya Rao — Marked Present`).
+- **Session Review & Manual Override Screen**: Class roster breakdown with interactive status override pills (`Present`, `Absent`, `Late`) and session summary closure.
+
+### Milestone 9 — Offline Reports & Analytics
+
+- **Reports Repository (`ReportsRepo`)**: On-device SQL aggregations for overall attendance %, class performance summaries, student attendance rates, and weekly trends.
+- **Principal Reports Dashboard (`app/principal/reports.tsx`)**: High-level attendance rate stat cards, date range filtering (Past 7 Days, Past 30 Days, All Time), weekly trend graphs, and at-risk student warnings ($< 75\%$).
+- **Teacher Class Reports (`app/teacher/reports/index.tsx`)**: Class-wise attendance rate breakdown, low attendance alerts, and student attendance roster metrics.
+
+---
+
+## 📂 Project Architecture
+
+```
+src/
+├─ app/                     # Expo Router file-based pages & role stacks
+│  ├─ _layout.tsx           # Root layout & providers
+│  ├─ auth/                 # Biometric & PIN authentication screens
+│  ├─ principal/            # Principal stack (Dashboard, Teachers, Classes, Students, Reports)
+│  ├─ teacher/              # Teacher stack (Classes, Students, Sessions, Settings)
+│  │  └─ sessions/          # Sessions list, Live Capture, & Review screens
+│  └─ shared/               # Shared settings & profile screens
+├─ core/
+│  ├─ ml/                   # ML Camera, Real/Stub Embedder & Vector Cosine Matcher
+│  ├─ storage/sqlite/       # SQLite database singleton, migrations & BaseRepository
+│  └─ ui/                   # Design system (atoms, molecules, templates, themes)
+└─ features/                # Feature domains & SQLite repositories
+   ├─ auth/                 # Authentication store & hashing logic
+   ├─ classes/              # Class entity & repo
+   ├─ sessions/             # Session & attendance repo, schemas, types
+   ├─ students/             # Student entity, repo & EnrollmentWizard
+   └─ teachers/             # Teacher entity, repo & TeacherForm
+```
+
+---
+
+## 📜 Development Scripts & Verification
+
+| Command             | Description                                               |
+| ------------------- | --------------------------------------------------------- |
+| `npm start`         | Start Metro / Expo development server                     |
+| `npm run android`   | Build & launch app on connected Android phone or emulator |
+| `npm run typecheck` | Run TypeScript compiler type check (`tsc --noEmit`)       |
+| `npm test`          | Execute Jest unit test suite (**63/63 tests passing**)    |
+| `npm run format`    | Format code using Prettier                                |
+| `npm run lint`      | Run ESLint verification                                   |
+
+---
+
+## 🧪 Verification Status
+
+- [x] **TypeScript:** `npm run typecheck` returned 0 errors.
+- [x] **Unit Tests:** `npm test` passed 63/63 tests across 11 test suites.
+- [x] **Code Formatting:** `npm run format` executed cleanly.

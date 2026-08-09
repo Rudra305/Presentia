@@ -74,14 +74,14 @@ export default function BiometricScreen() {
                     <Button
                         label="Use PIN"
                         variant="secondary"
-                        fullWidth
+                        className="flex-1"
                         onPress={() => router.replace('/auth/pin')}
                         testID="auth-biometric-use-pin"
                     />
                     <Button
                         label="Try again"
                         leftIcon="unlock"
-                        fullWidth
+                        className="flex-1"
                         loading={state === 'prompting' || state === 'checking'}
                         onPress={handlePrompt}
                         testID="auth-biometric-retry"

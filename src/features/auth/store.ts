@@ -6,6 +6,7 @@ import {
     enroll as apiEnroll,
     isEnrolled as apiIsEnrolled,
     refreshActivity,
+    resetAccount as apiResetAccount,
     signOut as apiSignOut,
     unlockWithPin as apiUnlockWithPin,
     type EnrollInput,
@@ -29,6 +30,7 @@ type AuthState = {
     unlockWithBiometric: () => Promise<UnlockOk | UnlockErr>;
     refreshActivity: () => Promise<void>;
     signOut: () => Promise<void>;
+    resetAccount: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -66,6 +68,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     signOut: async () => {
         await apiSignOut();
+        const enrolled = await apiIsEnrolled();
+        set({ session: null, status: 'ready', enrolled });
+    },
+
+    resetAccount: async () => {
+        await apiResetAccount();
         set({ session: null, status: 'ready', enrolled: false });
     },
 }));

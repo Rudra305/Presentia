@@ -45,6 +45,7 @@ export interface StoredAuthRecord {
     failedPinCount: number;
     lockoutUntil: number | null;
     lockoutStreak: number;
+    signedOutAt?: number | null;
 }
 
 export async function readAuth(): Promise<StoredAuthRecord | null> {

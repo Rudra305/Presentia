@@ -52,10 +52,10 @@ export class TeacherRepo extends BaseRepository<Teacher> {
         };
     }
 
-    /** All active teachers for a tenant, sorted by name. */
+    /** All active staff members (teachers & principal) for a tenant, sorted by name. */
     async listByTenant(tenantId: string): Promise<Teacher[]> {
         return this.findAll({
-            where: "tenant_id = ? AND role = 'teacher'",
+            where: "tenant_id = ? AND role IN ('principal', 'teacher')",
             params: [tenantId],
             orderBy: 'full_name COLLATE NOCASE ASC',
         });

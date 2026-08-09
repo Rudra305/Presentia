@@ -1,4 +1,4 @@
-import { enroll, unlockWithPin, bootstrapSession, signOut, isEnrolled } from '../api';
+import { enroll, unlockWithPin, bootstrapSession, signOut, resetAccount, isEnrolled } from '../api';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const secureStoreMock = require('expo-secure-store') as { __reset: () => void };
 
@@ -86,7 +86,7 @@ describe('auth api', () => {
         }
     });
 
-    it('signOut clears the account', async () => {
+    it('signOut invalidates active session but keeps account enrolled', async () => {
         await enroll({
             role: 'principal',
             fullName: 'Ada',
@@ -95,6 +95,23 @@ describe('auth api', () => {
         });
         expect(await isEnrolled()).toBe(true);
         await signOut();
+        expect(await isEnrolled()).toBe(true); // Account credentials preserved
+        expect(await bootstrapSession()).toBeNull(); // Session locked/expired
+
+        // Can unlock again with PIN
+        const unlock = await unlockWithPin('742108');
+        expect(unlock.ok).toBe(true);
+    });
+
+    it('resetAccount completely wipes the account', async () => {
+        await enroll({
+            role: 'principal',
+            fullName: 'Ada',
+            pin: '742108',
+            biometricEnabled: false,
+        });
+        expect(await isEnrolled()).toBe(true);
+        await resetAccount();
         expect(await isEnrolled()).toBe(false);
         expect(await bootstrapSession()).toBeNull();
     });

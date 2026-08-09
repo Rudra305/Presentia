@@ -34,7 +34,7 @@ export default function PinScreen() {
         if (result.reason === 'locked') {
             router.replace({
                 pathname: '/auth/locked',
-                params: { until: String(result.unlockAt) },
+                params: { until: String(result.lockoutUntil) },
             });
             return;
         }

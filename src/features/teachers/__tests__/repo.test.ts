@@ -20,10 +20,14 @@ describe('TeacherRepo', () => {
         await db.closeAsync();
     });
 
-    it('listByTenant returns seeded teachers sorted by name', async () => {
+    it('listByTenant returns seeded staff members sorted by name', async () => {
         const list = await repo.listByTenant(tenantId);
-        expect(list).toHaveLength(2);
-        expect(list.map((t) => t.fullName)).toEqual(['Mr. Ravi Menon', 'Ms. Lin Wei']);
+        expect(list).toHaveLength(3);
+        expect(list.map((t) => t.fullName)).toEqual([
+            'Dr. Ada Okafor',
+            'Mr. Ravi Menon',
+            'Ms. Lin Wei',
+        ]);
     });
 
     it('inserts a teacher and picks it up in the list', async () => {
