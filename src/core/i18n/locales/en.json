@@ -1,0 +1,51 @@
+{
+    "auth": {
+        "welcomeBack": "Welcome back",
+        "useBiometric": "Use Face ID / Fingerprint to unlock.",
+        "usePin": "Use PIN",
+        "tryAgain": "Try again",
+        "enterPin": "Enter 6-Digit PIN",
+        "signOut": "Sign Out",
+        "confirmSignOut": "Are you sure you want to sign out of your session?"
+    },
+    "dashboard": {
+        "welcome": "Welcome back",
+        "principal": "Principal",
+        "teacher": "Teacher",
+        "quickActions": "Quick actions",
+        "addTeacher": "Add teacher",
+        "addClass": "Add class",
+        "studentRoster": "Student Roster & Enrollment",
+        "takeAttendance": "Take Attendance (My Classes)",
+        "viewReports": "View reports",
+        "settings": "Settings & Preferences"
+    },
+    "sessions": {
+        "title": "Class Sessions",
+        "subtitle": "Start live attendance or review previous records",
+        "newSession": "New Session",
+        "reports": "Reports",
+        "startSession": "Start Attendance Session",
+        "selectClass": "Select Class",
+        "periodLabel": "Period / Subject Label (Optional)",
+        "periodPlaceholder": "e.g. Period 1 - Mathematics"
+    },
+    "reports": {
+        "title": "Attendance Reports & Analytics",
+        "attendanceRate": "Attendance %",
+        "totalSessions": "Total Sessions",
+        "presentMarks": "Present Marks",
+        "absentMarks": "Absent Marks",
+        "lowAttendanceAlert": "Low Attendance Alert"
+    },
+    "settings": {
+        "title": "Settings",
+        "appearance": "Appearance",
+        "chooseTheme": "Choose your preferred color theme:",
+        "language": "Language / भाषा / Idioma",
+        "chooseLanguage": "Select application language:",
+        "syncEngine": "Sync & Data Engine",
+        "offlineSyncQueue": "Offline Sync Queue",
+        "systemInfo": "System Info"
+    }
+}

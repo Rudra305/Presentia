@@ -1,0 +1,51 @@
+{
+    "auth": {
+        "welcomeBack": "पुनः स्वागत है",
+        "useBiometric": "अनलॉक करने के लिए बायोमेट्रिक / फिंगरप्रिंट का उपयोग करें।",
+        "usePin": "पिन का उपयोग करें",
+        "tryAgain": "पुनः प्रयास करें",
+        "enterPin": "6-अंकीय पिन दर्ज करें",
+        "signOut": "साइन आउट",
+        "confirmSignOut": "क्या आप निश्चित रूप से साइन आउट करना चाहते हैं?"
+    },
+    "dashboard": {
+        "welcome": "पुनः स्वागत है",
+        "principal": "प्राचार्य",
+        "teacher": "शिक्षक",
+        "quickActions": "त्वरित कार्य",
+        "addTeacher": "शिक्षक जोड़ें",
+        "addClass": "कक्षा जोड़ें",
+        "studentRoster": "छात्र सूची एवं नामांकन",
+        "takeAttendance": "उपस्थिति दर्ज करें (मेरी कक्षाएं)",
+        "viewReports": "रिपोर्ट देखें",
+        "settings": "सेटिंग्स और प्राथमिकताएं"
+    },
+    "sessions": {
+        "title": "कक्षा सत्र",
+        "subtitle": "लाइव उपस्थिति शुरू करें या पिछले रिकॉर्ड देखें",
+        "newSession": "नया सत्र",
+        "reports": "रिपोर्ट्स",
+        "startSession": "उपस्थिति सत्र शुरू करें",
+        "selectClass": "कक्षा चुनें",
+        "periodLabel": "कालखंड / विषय (वैकल्पिक)",
+        "periodPlaceholder": "जैसे: कालखंड 1 - गणित"
+    },
+    "reports": {
+        "title": "उपस्थिति रिपोर्ट एवं विश्लेषण",
+        "attendanceRate": "उपस्थिति %",
+        "totalSessions": "कुल सत्र",
+        "presentMarks": "उपस्थित",
+        "absentMarks": "अनुपस्थित",
+        "lowAttendanceAlert": "कम उपस्थिति चेतावनी"
+    },
+    "settings": {
+        "title": "सेटिंग्स",
+        "appearance": "रंग रूप",
+        "chooseTheme": "अपनी पसंदीदा थीम चुनें:",
+        "language": "भाषा / Language / Idioma",
+        "chooseLanguage": "आवेदन की भाषा चुनें:",
+        "syncEngine": "सिंक और डेटा इंजन",
+        "offlineSyncQueue": "ऑफलाइन सिंक कतार",
+        "systemInfo": "सिस्टम जानकारी"
+    }
+}

@@ -1,23 +1,28 @@
 {
     "expo": {
-        "name": "Attendance",
-        "slug": "attendance-app",
+        "name": "Presentia",
+        "slug": "presentia",
         "sdkVersion": "54.0.0",
-        "version": "0.1.0",
+        "version": "1.0.0",
+        "runtimeVersion": {
+            "policy": "appVersion"
+        },
         "orientation": "portrait",
         "icon": "./assets/images/icon.png",
-        "scheme": "attendanceapp",
+        "scheme": "presentia",
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "com.attendance.app",
+            "bundleIdentifier": "com.rudra.presentia",
+            "buildNumber": "1",
             "infoPlist": {
                 "ITSAppUsesNonExemptEncryption": false
             }
         },
         "android": {
-            "package": "com.attendance.app",
+            "package": "com.rudra.presentia",
+            "versionCode": 1,
             "adaptiveIcon": {
                 "backgroundColor": "#0B1220",
                 "foregroundImage": "./assets/images/android-icon-foreground.png"
@@ -25,7 +30,8 @@
             "predictiveBackGestureEnabled": true,
             "permissions": [
                 "android.permission.USE_BIOMETRIC",
-                "android.permission.USE_FINGERPRINT"
+                "android.permission.USE_FINGERPRINT",
+                "android.permission.CAMERA"
             ]
         },
         "web": {
@@ -47,7 +53,13 @@
             [
                 "expo-local-authentication",
                 {
-                    "faceIDPermission": "Allow Attendance to use Face ID to sign in."
+                    "faceIDPermission": "Allow Presentia to use Face ID to sign in securely."
+                }
+            ],
+            [
+                "expo-camera",
+                {
+                    "cameraPermission": "Allow Presentia to access Camera for real-time face attendance recognition."
                 }
             ],
             "expo-secure-store",

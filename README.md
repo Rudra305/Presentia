@@ -2,7 +2,7 @@
 
 Offline-first, on-device AI-powered Student Attendance System built with **Expo (SDK 54) + React Native 0.81 + TypeScript**.
 
-Current Status: **Milestone 9 — Offline Reports & Analytics Completed ✅**  
+Current Status: **Milestone 11 — Hardening: Security, A11y, i18n Completed ✅**  
 Full Roadmap & Architecture Specifications live in [`docs/`](./docs/00_INDEX.md).
 
 ---
@@ -75,7 +75,7 @@ cp .env.example .env
 
 ---
 
-## 🛠️ Complete Feature Progress (Milestones 1 – 9)
+## 🛠️ Complete Feature Progress (Milestones 1 – 11)
 
 ### Milestone 1 — Project Bootstrap
 
@@ -133,6 +133,19 @@ cp .env.example .env
 - **Principal Reports Dashboard (`app/principal/reports.tsx`)**: High-level attendance rate stat cards, date range filtering (Past 7 Days, Past 30 Days, All Time), weekly trend graphs, and at-risk student warnings ($< 75\%$).
 - **Teacher Class Reports (`app/teacher/reports/index.tsx`)**: Class-wise attendance rate breakdown, low attendance alerts, and student attendance roster metrics.
 
+### Milestone 10 — Sync Engine & Conflict Resolution
+
+- **Sync Queue Repository (`SyncQueueRepo`)**: Enqueues local mutations in SQLite `sync_queue` table with exponential backoff retries.
+- **Sync Engine Coordinator (`SyncEngine`)**: Bi-directional synchronization engine (Outbound push batching + Inbound delta pulling with `since` cursor).
+- **Last-Write-Wins (LWW) Conflict Resolver (`ConflictResolver`)**: Automatic collision resolution using entity `version` and `updated_at` timestamps.
+- **Sync Status UI (`SyncStatusBadge` & `useSync`)**: Real-time sync status badge (`Synced`, `⚡ 3 Pending`, `Syncing...`) and Settings integration.
+
+### Milestone 11 — Hardening: Security, A11y, i18n
+
+- **i18n Multi-Language Support (`src/core/i18n`)**: Zero-dependency localization framework with English (`en`), Hindi (`hi`), and Spanish (`es`) dictionaries and dynamic mid-session language switching in Settings.
+- **Security & PII Encryption (`src/core/security`)**: Field encryption and SHA-256 integrity hashing helpers (`encryptPayload`, `decryptPayload`, `hashPII`).
+- **Accessibility (A11y) Audit**: Screen-reader attributes (`accessibilityRole`, `accessibilityLabel`, `accessibilityHint`, `accessibilityState`) added across core UI primitives (`Button`, `Input`, `SyncStatusBadge`).
+
 ---
 
 ## 📂 Project Architecture
@@ -147,14 +160,18 @@ src/
 │  │  └─ sessions/          # Sessions list, Live Capture, & Review screens
 │  └─ shared/               # Shared settings & profile screens
 ├─ core/
+│  ├─ i18n/                 # i18n provider, translate module, & en/hi/es dictionaries
 │  ├─ ml/                   # ML Camera, Real/Stub Embedder & Vector Cosine Matcher
+│  ├─ security/             # AES/SHA-256 field encryption & PII hashing
 │  ├─ storage/sqlite/       # SQLite database singleton, migrations & BaseRepository
 │  └─ ui/                   # Design system (atoms, molecules, templates, themes)
 └─ features/                # Feature domains & SQLite repositories
    ├─ auth/                 # Authentication store & hashing logic
    ├─ classes/              # Class entity & repo
+   ├─ reports/              # Reports repo, StatCard, & SyncStatusBadge
    ├─ sessions/             # Session & attendance repo, schemas, types
    ├─ students/             # Student entity, repo & EnrollmentWizard
+   ├─ sync/                 # Sync queue repo, push/pull API, LWW resolver, engine & hook
    └─ teachers/             # Teacher entity, repo & TeacherForm
 ```
 
@@ -167,7 +184,7 @@ src/
 | `npm start`         | Start Metro / Expo development server                     |
 | `npm run android`   | Build & launch app on connected Android phone or emulator |
 | `npm run typecheck` | Run TypeScript compiler type check (`tsc --noEmit`)       |
-| `npm test`          | Execute Jest unit test suite (**63/63 tests passing**)    |
+| `npm test`          | Execute Jest unit test suite (**84/84 tests passing**)    |
 | `npm run format`    | Format code using Prettier                                |
 | `npm run lint`      | Run ESLint verification                                   |
 
@@ -176,5 +193,5 @@ src/
 ## 🧪 Verification Status
 
 - [x] **TypeScript:** `npm run typecheck` returned 0 errors.
-- [x] **Unit Tests:** `npm test` passed 63/63 tests across 11 test suites.
+- [x] **Unit Tests:** `npm test` passed 84/84 tests across 15 test suites.
 - [x] **Code Formatting:** `npm run format` executed cleanly.

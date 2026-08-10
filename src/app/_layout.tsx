@@ -13,6 +13,7 @@ import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/global.css';
+import { I18nProvider } from '@/core/i18n';
 import { ErrorScreen } from '@/core/ui/templates/ErrorScreen';
 import { ThemeProvider, useTheme } from '@/core/ui/theme';
 import { useAuthStore } from '@/features/auth';
@@ -95,7 +96,9 @@ export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <ThemeProvider initialMode="system">
-                <RootStack />
+                <I18nProvider>
+                    <RootStack />
+                </I18nProvider>
             </ThemeProvider>
         </SafeAreaProvider>
     );

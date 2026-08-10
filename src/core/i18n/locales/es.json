@@ -1,0 +1,51 @@
+{
+    "auth": {
+        "welcomeBack": "Bienvenido de nuevo",
+        "useBiometric": "Use Face ID / Huella digital para desbloquear.",
+        "usePin": "Usar PIN",
+        "tryAgain": "Intentar de nuevo",
+        "enterPin": "Ingrese el PIN de 6 dígitos",
+        "signOut": "Cerrar sesión",
+        "confirmSignOut": "¿Está seguro de que desea cerrar sesión?"
+    },
+    "dashboard": {
+        "welcome": "Bienvenido de nuevo",
+        "principal": "Director",
+        "teacher": "Profesor",
+        "quickActions": "Acciones rápidas",
+        "addTeacher": "Añadir profesor",
+        "addClass": "Añadir clase",
+        "studentRoster": "Lista de estudiantes y matrícula",
+        "takeAttendance": "Tomar asistencia (Mis clases)",
+        "viewReports": "Ver informes",
+        "settings": "Ajustes y preferencias"
+    },
+    "sessions": {
+        "title": "Sesiones de clase",
+        "subtitle": "Inicie la asistencia en vivo o revise registros anteriores",
+        "newSession": "Nueva sesión",
+        "reports": "Informes",
+        "startSession": "Iniciar sesión de asistencia",
+        "selectClass": "Seleccionar clase",
+        "periodLabel": "Período / Asignatura (Opcional)",
+        "periodPlaceholder": "ej. Período 1 - Matemáticas"
+    },
+    "reports": {
+        "title": "Informes y estadísticas de asistencia",
+        "attendanceRate": "Asistencia %",
+        "totalSessions": "Sesiones totales",
+        "presentMarks": "Presentes",
+        "absentMarks": "Ausentes",
+        "lowAttendanceAlert": "Alerta de baja asistencia"
+    },
+    "settings": {
+        "title": "Ajustes",
+        "appearance": "Apariencia",
+        "chooseTheme": "Elija su tema de color preferido:",
+        "language": "Idioma / Language / भाषा",
+        "chooseLanguage": "Seleccione el idioma de la aplicación:",
+        "syncEngine": "Motor de sincronización",
+        "offlineSyncQueue": "Cola de sincronización sin conexión",
+        "systemInfo": "Información del sistema"
+    }
+}
