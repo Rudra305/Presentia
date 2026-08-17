@@ -2,7 +2,7 @@
 
 > **An offline-first, on-device AI-powered Student Attendance & Analytics Mobile Application** designed for modern schools and educational institutions. Built with **Expo (SDK 54) + React Native 0.81 + TypeScript**.
 
-[![Build Status](https://img.shields.io/badge/tests-84%20passed-emerald)](https://github.com/Rudra305/student_attendance)
+[![Build Status](https://img.shields.io/badge/tests-84%20passed-emerald)](https://github.com/Rudra305/presentia)
 [![Expo SDK](https://img.shields.io/badge/Expo-SDK%2054-blue)](https://expo.dev)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61dafb)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
@@ -103,11 +103,12 @@ Make sure your development machine has:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Rudra305/student_attendance.git
-cd student_attendance
+git clone https://github.com/Rudra305/presentia.git
+cd presentia
 
 # 2. Install dependencies
-npm install
+yarn install
+# or npm install
 
 # 3. Create Environment File
 cp .env.example .env
@@ -190,7 +191,7 @@ npx eas-cli build --platform android --profile preview --local
 ## 📂 Directory Structure
 
 ```
-student_attendance/
+presentia/
 ├── docs/                   # Complete architectural spec & milestone documentation
 ├── src/
 │   ├── app/                # Expo Router pages & role stacks

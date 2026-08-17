@@ -1,5 +1,5 @@
 {
-    "name": "attendance-app",
+    "name": "presentia",
     "main": "expo-router/entry",
     "version": "0.1.0",
     "private": true,
