@@ -18,9 +18,65 @@ import { ErrorScreen } from '@/core/ui/templates/ErrorScreen';
 import { ThemeProvider, useTheme } from '@/core/ui/theme';
 import { useAuthStore } from '@/features/auth';
 
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+
+configureReanimatedLogger({
+    level: ReanimatedLogLevel.warn,
+    strict: false,
+});
+
 SplashScreen.preventAutoHideAsync().catch(() => {
     /* no-op */
 });
+
+// Suppress benign Expo dev-client keep-awake error on physical devices
+if (typeof console !== 'undefined') {
+    const origError = console.error;
+    console.error = (...args: any[]) => {
+        const msg = args
+            .map((a) => (typeof a === 'string' ? a : a?.message || String(a)))
+            .join(' ');
+        if (
+            msg.includes('keep awake') ||
+            msg.includes('Keep awake') ||
+            msg.includes('Unable to activate keep awake')
+        ) {
+            return;
+        }
+        origError.apply(console, args);
+    };
+}
+
+if (typeof process !== 'undefined' && typeof (process as any).on === 'function') {
+    (process as any).on('unhandledRejection', (reason: any) => {
+        const msg = typeof reason === 'string' ? reason : reason?.message || '';
+        if (
+            msg.includes('keep awake') ||
+            msg.includes('Keep awake') ||
+            msg.includes('Unable to activate keep awake')
+        ) {
+            return;
+        }
+    });
+}
+
+if (typeof global !== 'undefined') {
+    const g = global as any;
+    if (g.ErrorUtils) {
+        const origHandler = g.ErrorUtils.getGlobalHandler?.();
+        g.ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
+            const msg = error?.message || String(error);
+            if (
+                msg.includes('keep awake') ||
+                msg.includes('Keep awake') ||
+                msg.includes('Unable to activate keep awake')
+            ) {
+                return;
+            }
+            if (origHandler) origHandler(error, isFatal);
+        });
+    }
+}
 
 export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
     return (

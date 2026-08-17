@@ -16,7 +16,7 @@ describe('ReportsRepo Unit Tests', () => {
     beforeEach(async () => {
         db = BetterSqliteAdapter.open();
         await runMigrations(db);
-        const seed = await seedDev(db);
+        const seed = await seedDev(db, { includeDemoData: true });
         tenantId = seed.tenantId;
         teacherId = seed.teacherIds[0]!;
         classId = seed.classIds[0]!;
@@ -138,8 +138,9 @@ describe('ReportsRepo Unit Tests', () => {
         await sessionRepo.closeSession(session.id, teacherId);
 
         const trend = await reportsRepo.getWeeklyTrend(tenantId);
-        expect(trend.length).toBeGreaterThan(0);
-        expect(trend[0]!.totalSessions).toBeGreaterThan(0);
-        expect(trend[0]!.attendancePercentage).toBe(20);
+        expect(trend.length).toBe(7);
+        const todayPoint = trend.find((p) => p.totalSessions > 0) ?? trend[trend.length - 1]!;
+        expect(todayPoint.totalSessions).toBeGreaterThan(0);
+        expect(todayPoint.attendancePercentage).toBe(20);
     });
 });

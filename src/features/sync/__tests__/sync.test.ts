@@ -16,7 +16,7 @@ describe('Sync Feature Module', () => {
     beforeEach(async () => {
         db = BetterSqliteAdapter.open();
         await runMigrations(db);
-        seed = await seedDev(db);
+        seed = await seedDev(db, { includeDemoData: true });
         queueRepo = new SyncQueueRepo(db);
         __setMockServerDeltas([]);
     });

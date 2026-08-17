@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { View, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon } from '@/core/ui/atoms/Icon';
 import { Text } from '@/core/ui/atoms/Text';
 import { Card } from '@/core/ui/molecules/Card';
+import { Dropdown } from '@/core/ui/molecules/Dropdown';
 import { useAuth } from '@/features/auth';
 import { getClassRepo, type ClassWithDetails } from '@/features/classes';
+import { ensureSeedTenant } from '@/features/teachers';
 import {
     getReportsRepo,
     StatCard,
@@ -16,7 +19,6 @@ import {
 
 export default function TeacherReportsScreen() {
     const { session } = useAuth();
-    const tenantId = 'tenant_default';
     const teacherId = session?.userId;
 
     const [selectedClassId, setSelectedClassId] = useState<string | undefined>(undefined);
@@ -25,58 +27,59 @@ export default function TeacherReportsScreen() {
     const [students, setStudents] = useState<StudentAttendanceSummary[]>([]);
     const [refreshing, setRefreshing] = useState(false);
 
-    const loadClasses = async () => {
+    const loadData = useCallback(async () => {
         try {
+            const tenantId = await ensureSeedTenant();
             const classRepo = await getClassRepo();
+            const repo = await getReportsRepo();
+
             const teacherClasses: ClassWithDetails[] = await classRepo.listWithDetails(tenantId);
             const filtered = teacherId
                 ? teacherClasses.filter((c) => c.teacherId === teacherId)
-                : teacherClasses;
+                : [];
 
-            const items = (filtered.length > 0 ? filtered : teacherClasses).map(
-                (c: ClassWithDetails) => ({
-                    id: c.id,
-                    name: `${c.name} (${c.grade || ''}${c.section || ''})`,
-                }),
-            );
+            const activeClasses = filtered.length > 0 ? filtered : teacherClasses;
+
+            const items = activeClasses.map((c: ClassWithDetails) => ({
+                id: c.id,
+                name: `${c.name} (${c.grade || ''}${c.section || ''})`,
+            }));
 
             setClassesList(items);
-            if (items.length > 0 && !selectedClassId) {
-                setSelectedClassId(items[0]!.id);
-            }
-        } catch (err) {
-            console.error('Error loading teacher classes:', err);
-        }
-    };
 
-    const loadReportData = async () => {
-        try {
-            const repo = await getReportsRepo();
-            const summaries = await repo.getClassSummaries(tenantId, { classId: selectedClassId });
+            const activeClassId = selectedClassId || items[0]?.id;
+            if (activeClassId && activeClassId !== selectedClassId) {
+                setSelectedClassId(activeClassId);
+            }
+
+            const summaries = await repo.getClassSummaries(tenantId, { classId: activeClassId });
             setClassSummary(summaries[0] || null);
 
-            const studentList = await repo.getStudentSummaries(tenantId, selectedClassId);
+            const studentList = await repo.getStudentSummaries(tenantId, activeClassId);
             setStudents(studentList);
         } catch (err) {
             console.error('Error loading teacher report data:', err);
         }
-    };
+    }, [teacherId, selectedClassId]);
 
-    useEffect(() => {
-        void loadClasses();
-    }, [tenantId, teacherId]);
-
-    useEffect(() => {
-        void loadReportData();
-    }, [tenantId, selectedClassId]);
+    useFocusEffect(
+        useCallback(() => {
+            void loadData();
+        }, [loadData]),
+    );
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await loadReportData();
+        await loadData();
         setRefreshing(false);
     };
 
     const lowAttendanceList = students.filter((s) => s.isLowAttendance);
+
+    const classOptions = classesList.map((c) => ({
+        label: c.name,
+        value: c.id,
+    }));
 
     return (
         <SafeAreaView
@@ -88,40 +91,17 @@ export default function TeacherReportsScreen() {
                 contentContainerStyle={{ padding: 20, gap: 20 }}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             >
-                {/* Class Selection Pills */}
-                <View className="gap-2">
-                    <Text variant="caption" tone="muted" className="font-semibold">
-                        Select Class
-                    </Text>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ gap: 8 }}
-                    >
-                        {classesList.map((c) => {
-                            const active = selectedClassId === c.id;
-                            return (
-                                <Pressable
-                                    key={c.id}
-                                    onPress={() => setSelectedClassId(c.id)}
-                                    className={`px-4 py-2 rounded-full border ${
-                                        active
-                                            ? 'bg-primary border-primary'
-                                            : 'bg-bg-elevated border-border'
-                                    }`}
-                                >
-                                    <Text
-                                        variant="caption"
-                                        tone={active ? 'inverse' : 'muted'}
-                                        className="font-semibold"
-                                    >
-                                        {c.name}
-                                    </Text>
-                                </Pressable>
-                            );
-                        })}
-                    </ScrollView>
-                </View>
+                {/* Class Selection Dropdown */}
+                {classesList.length > 0 ? (
+                    <Dropdown
+                        label="Select Class"
+                        placeholder="Choose a class..."
+                        options={classOptions}
+                        selectedValue={selectedClassId}
+                        onSelect={(val) => setSelectedClassId(val)}
+                        testID="teacher-reports-class-dropdown"
+                    />
+                ) : null}
 
                 {/* Overview Stats for selected class */}
                 {classSummary ? (

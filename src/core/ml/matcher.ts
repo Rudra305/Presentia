@@ -88,5 +88,8 @@ export function matchFace(
     return {
         status: 'unmatched',
         confidence,
+        studentId: topStudentId,
+        fullName: topInfo.fullName,
+        rollNo: topInfo.rollNo,
     };
 }

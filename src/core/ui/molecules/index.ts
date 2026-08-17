@@ -6,3 +6,6 @@ export type { ModalProps, ModalSize } from './Modal';
 
 export { CameraViewfinder } from './CameraViewfinder';
 export type { CameraViewfinderProps } from './CameraViewfinder';
+
+export { Dropdown } from './Dropdown';
+export type { DropdownOption } from './Dropdown';

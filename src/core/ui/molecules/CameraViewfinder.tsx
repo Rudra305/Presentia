@@ -23,6 +23,12 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
     const [facing, setFacing] = useState<'front' | 'back'>('front');
     const cameraRef = useRef<CameraView | null>(null);
 
+    React.useEffect(() => {
+        if (permission && !permission.granted && permission.canAskAgain) {
+            void requestPermission();
+        }
+    }, [permission]);
+
     if (!permission) {
         return (
             <View className="h-56 bg-slate-950 rounded-2xl items-center justify-center p-4">

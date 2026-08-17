@@ -15,7 +15,7 @@ describe('seed data', () => {
     });
 
     it('creates the expected tenant + users + classes + students', async () => {
-        const result = await seedDev(db);
+        const result = await seedDev(db, { includeDemoData: true });
         expect(result.tenantId).toBe(SEED_TENANT_ID);
         expect(result.principalId).toBeTruthy();
         expect(result.teacherIds).toHaveLength(2);
@@ -24,7 +24,7 @@ describe('seed data', () => {
     });
 
     it('populates every foreign-key relationship correctly', async () => {
-        const { classIds } = await seedDev(db);
+        const { classIds } = await seedDev(db, { includeDemoData: true });
         const [class1] = classIds;
         const students = await db.getAllAsync<{ full_name: string; roll_no: string }>(
             'SELECT full_name, roll_no FROM students WHERE class_id = ? ORDER BY roll_no',
@@ -36,8 +36,8 @@ describe('seed data', () => {
     });
 
     it('is idempotent — running twice returns the same ids', async () => {
-        const a = await seedDev(db);
-        const b = await seedDev(db);
+        const a = await seedDev(db, { includeDemoData: true });
+        const b = await seedDev(db, { includeDemoData: true });
         expect(b.tenantId).toBe(a.tenantId);
         expect(b.principalId).toBe(a.principalId);
         expect(b.teacherIds.sort()).toEqual(a.teacherIds.sort());

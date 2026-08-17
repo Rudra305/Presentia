@@ -23,7 +23,7 @@ export class ReportsRepo {
         tenantId: string,
         filter?: ReportFilter,
     ): Promise<AttendanceOverviewStats> {
-        const whereClauses = [`c.tenant_id = ?`, `s.status = 'closed'`];
+        const whereClauses = [`c.tenant_id = ?`, `s.deleted_at IS NULL`];
         const params: SqlValue[] = [tenantId];
 
         if (filter?.classId) {
@@ -98,7 +98,7 @@ export class ReportsRepo {
         tenantId: string,
         filter?: ReportFilter,
     ): Promise<ClassAttendanceSummary[]> {
-        const sessionConditions = [`s.status = 'closed'`];
+        const sessionConditions = [`s.deleted_at IS NULL`];
         const sessionParams: SqlValue[] = [];
 
         if (filter?.startDate) {
@@ -175,22 +175,24 @@ export class ReportsRepo {
         classId?: string,
         filter?: ReportFilter,
     ): Promise<StudentAttendanceSummary[]> {
-        const whereClauses = [`st.tenant_id = ?`, `st.deleted_at IS NULL`];
-        const params: SqlValue[] = [tenantId];
+        const sessionConditions = [`s.deleted_at IS NULL`];
+        const sessionParams: SqlValue[] = [];
 
-        if (classId || filter?.classId) {
-            whereClauses.push(`st.class_id = ?`);
-            params.push(classId || filter!.classId!);
-        }
-
-        const sessionConditions = [`s.status = 'closed'`];
         if (filter?.startDate) {
             sessionConditions.push(`s.created_at >= ?`);
-            params.push(new Date(filter.startDate).getTime());
+            sessionParams.push(new Date(filter.startDate).getTime());
         }
         if (filter?.endDate) {
             sessionConditions.push(`s.created_at <= ?`);
-            params.push(new Date(filter.endDate).getTime() + 86399999);
+            sessionParams.push(new Date(filter.endDate).getTime() + 86399999);
+        }
+
+        const whereClauses = [`st.tenant_id = ?`, `st.deleted_at IS NULL`];
+        const whereParams: SqlValue[] = [tenantId];
+
+        if (classId || filter?.classId) {
+            whereClauses.push(`st.class_id = ?`);
+            whereParams.push(classId || filter!.classId!);
         }
 
         const sessionFilterSql = sessionConditions.join(' AND ');
@@ -217,6 +219,7 @@ export class ReportsRepo {
       ORDER BY CAST(st.roll_no AS INTEGER) ASC, st.full_name ASC
     `;
 
+        const params: SqlValue[] = [...sessionParams, ...whereParams];
         const rows = await this.db.getAllAsync<SqlRow>(sql, params);
 
         return rows.map((r) => {
@@ -252,7 +255,7 @@ export class ReportsRepo {
         classId?: string,
         limitDays = 7,
     ): Promise<WeeklyTrendPoint[]> {
-        const whereClauses = [`c.tenant_id = ?`, `s.status = 'closed'`];
+        const whereClauses = [`c.tenant_id = ?`, `s.deleted_at IS NULL`];
         const params: SqlValue[] = [tenantId];
 
         if (classId) {
@@ -264,7 +267,7 @@ export class ReportsRepo {
 
         const sql = `
       SELECT
-        DATE(s.created_at / 1000, 'unixepoch') as session_date,
+        DATE(s.created_at / 1000, 'unixepoch', 'localtime') as session_date,
         COUNT(DISTINCT s.id) as total_sessions,
         SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END) as present_count,
         SUM(CASE WHEN ar.status = 'absent' THEN 1 ELSE 0 END) as absent_count,
@@ -283,17 +286,27 @@ export class ReportsRepo {
 
         const rows = await this.db.getAllAsync<SqlRow>(sql, params);
 
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const rowMap = new Map<string, SqlRow>();
+        for (const r of rows) {
+            if (typeof r.session_date === 'string') {
+                rowMap.set(r.session_date, r);
+            }
+        }
 
-        return rows
-            .map((r) => {
-                const rawDate = r.session_date;
-                const dateStr: string =
-                    typeof rawDate === 'string' && rawDate
-                        ? rawDate
-                        : new Date().toISOString().split('T')[0]!;
-                const dateObj = new Date(dateStr);
-                const dayLabel = isNaN(dateObj.getTime()) ? 'Day' : days[dateObj.getDay()] || 'Day';
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const points: WeeklyTrendPoint[] = [];
+
+        const today = new Date();
+        for (let i = limitDays - 1; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+            const dayLabel = days[d.getDay()] || 'Day';
+
+            const r = rowMap.get(dateStr);
+            if (r) {
                 const totalRecords = Number(r.total_records ?? 0);
                 const presentCount = Number(r.present_count ?? 0);
                 const lateCount = Number(r.late_count ?? 0);
@@ -302,7 +315,7 @@ export class ReportsRepo {
                         ? Math.round(((presentCount + lateCount) / totalRecords) * 100)
                         : 0;
 
-                return {
+                points.push({
                     date: dateStr,
                     dayLabel,
                     totalSessions: Number(r.total_sessions ?? 0),
@@ -310,9 +323,21 @@ export class ReportsRepo {
                     absentCount: Number(r.absent_count ?? 0),
                     lateCount,
                     attendancePercentage: percentage,
-                };
-            })
-            .reverse();
+                });
+            } else {
+                points.push({
+                    date: dateStr,
+                    dayLabel,
+                    totalSessions: 0,
+                    presentCount: 0,
+                    absentCount: 0,
+                    lateCount: 0,
+                    attendancePercentage: 0,
+                });
+            }
+        }
+
+        return points;
     }
 }
 

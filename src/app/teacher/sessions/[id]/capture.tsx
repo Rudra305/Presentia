@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, CameraViewfinder, Card, Icon, Text } from '@/core/ui';
+import { Button, CameraViewfinder, Card, Icon, Loader, Text } from '@/core/ui';
 import { getFacePipeline, matchFace, type StudentEmbeddingVector } from '@/core/ml';
 import { useAuth } from '@/features/auth';
 import type { SessionWithDetails, StudentAttendanceItem } from '@/features/sessions';
@@ -76,7 +76,14 @@ export default function LiveAttendanceCaptureScreen() {
 
     // Frame Capture & Recognition Handler
     const handleFrameCaptured = async (photoUri?: string) => {
-        if (isCapturing || enrolledVectors.length === 0) return;
+        if (isCapturing) return;
+        if (enrolledVectors.length === 0) {
+            setLastNotification({
+                text: '⚠️ No face embeddings enrolled for this class. Please enroll students with face scans first.',
+                type: 'candidate',
+            });
+            return;
+        }
         try {
             setIsCapturing(true);
 
@@ -84,14 +91,29 @@ export default function LiveAttendanceCaptureScreen() {
             const detectedFaces = await faceDetector.detectFaces(photoUri || 'live-frame');
             if (detectedFaces.length === 0) {
                 setLastNotification({
-                    text: 'No face detected in camera frame. Position student in circle.',
+                    text: '⚠️ No face detected in camera frame. Position student in circle.',
                     type: 'candidate',
                 });
                 return;
             }
 
-            const embeddingResult = await faceEmbedder.generateEmbedding(photoUri || 'live-frame');
-            const matchResult = matchFace(embeddingResult.vector, enrolledVectors, 0.85, 0.72);
+            // In Dev ML Stub mode, cycle seed through un-marked enrolled students for realistic demo
+            let seedHint: string | undefined;
+            if (mlMode === 'stub' && enrolledVectors.length > 0) {
+                const pendingStudent = attendanceList.find((a) => a.status !== 'present');
+                const targetStudentId = pendingStudent?.studentId || enrolledVectors[0]?.studentId;
+                const matchVec = enrolledVectors.find((v) => v.studentId === targetStudentId);
+                if (matchVec) {
+                    seedHint = `${matchVec.rollNo}_sample_1`;
+                }
+            }
+
+            const embeddingResult = await faceEmbedder.generateEmbedding(
+                photoUri || 'live-frame',
+                seedHint,
+            );
+            const matchResult = matchFace(embeddingResult.vector, enrolledVectors, 0.75, 0.60);
+            const matchPct = Math.round(matchResult.confidence * 100);
 
             if (matchResult.status === 'matched' && matchResult.studentId) {
                 // High confidence match -> Auto Mark Present
@@ -106,9 +128,7 @@ export default function LiveAttendanceCaptureScreen() {
                 });
 
                 setLastNotification({
-                    text: `✅ ${matchResult.fullName} (Roll #${matchResult.rollNo}) — Marked Present (${Math.round(
-                        matchResult.confidence * 100,
-                    )}% match)`,
+                    text: `✅ ${matchResult.fullName} (Roll #${matchResult.rollNo}) — Marked Present (${matchPct}% match)`,
                     type: 'success',
                 });
 
@@ -118,16 +138,17 @@ export default function LiveAttendanceCaptureScreen() {
             } else if (matchResult.status === 'candidate' && matchResult.studentId) {
                 // Candidate match -> Suggestion Prompt
                 setLastNotification({
-                    text: `❓ Candidate: ${matchResult.fullName} (${Math.round(
-                        matchResult.confidence * 100,
-                    )}% match)`,
+                    text: `❓ Candidate Match: ${matchResult.fullName} (Roll #${matchResult.rollNo}) — ${matchPct}% match`,
                     type: 'candidate',
                     studentId: matchResult.studentId,
                 });
             } else {
+                const topMatchInfo = matchResult.fullName
+                    ? ` (Top match: ${matchResult.fullName} @ ${matchPct}%)`
+                    : ` (${matchPct}% similarity)`;
                 setLastNotification({
-                    text: '❌ Unrecognized face. Make sure student is enrolled.',
-                    type: 'candidate',
+                    text: `❌ Unrecognized Face${topMatchInfo}. Ensure student face is enrolled in Roster.`,
+                    type: 'unmatched',
                 });
             }
         } catch (e: any) {
@@ -159,42 +180,48 @@ export default function LiveAttendanceCaptureScreen() {
                 type: 'success',
             });
         } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to mark candidate.');
+            Alert.alert('Error', e.message || 'Failed to update attendance status');
         }
     };
 
-    const presentCount = attendanceList.filter((s) => s.status === 'present').length;
-    const totalStudents = attendanceList.length;
+    const presentCount = attendanceList.filter((a) => a.status === 'present').length;
+
+    if (loading) {
+        return (
+            <SafeAreaView className="flex-1 bg-bg items-center justify-center">
+                <Loader size="lg" />
+            </SafeAreaView>
+        );
+    }
 
     return (
-        <SafeAreaView className="flex-1 bg-bg" edges={['left', 'right', 'bottom']}>
-            <ScrollView
-                contentContainerStyle={{ padding: 20, gap: 16 }}
-                testID="live-capture-screen"
-            >
-                {/* Top Class & Counter Pill */}
+        <SafeAreaView
+            className="flex-1 bg-bg"
+            edges={['left', 'right', 'bottom']}
+            testID="live-capture-screen"
+        >
+            <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+                {/* Header */}
                 <View className="flex-row items-center justify-between">
-                    <View className="flex-1 mr-2">
-                        <Text variant="h2" numberOfLines={1}>
-                            {sessionInfo?.className || 'Attendance Capture'}
-                        </Text>
+                    <View className="gap-1 flex-1">
+                        <Text variant="h2">Live Attendance</Text>
                         <Text variant="caption" tone="muted">
-                            {sessionInfo?.periodLabel || 'Live Camera Recognition'}
+                            {sessionInfo?.className ?? 'Class'} · {sessionInfo?.subject ?? 'General'}
                         </Text>
                     </View>
-
-                    <View className="px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800">
-                        <Text className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                            {presentCount} / {totalStudents} Present
+                    <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                        <View className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <Text variant="caption" tone="primary" className="font-semibold">
+                            ACTIVE
                         </Text>
                     </View>
                 </View>
 
-                {/* Viewfinder: Real Camera or Dev Stub */}
+                {/* Viewfinder Container */}
                 <View className="gap-2">
                     <View className="flex-row items-center justify-between">
                         <Text variant="label" tone="muted">
-                            Camera Viewfinder
+                            Camera Feed ({enrolledVectors.length} vectors loaded)
                         </Text>
                         <Pressable
                             onPress={() => setMlMode((m) => (m === 'real' ? 'stub' : 'real'))}
@@ -231,17 +258,21 @@ export default function LiveAttendanceCaptureScreen() {
                 {/* Live Notification Banner */}
                 {lastNotification ? (
                     <View
-                        className={`p-3 rounded-xl border flex-row items-center justify-between ${
+                        className={`p-3.5 rounded-xl border flex-row items-center justify-between ${
                             lastNotification.type === 'success'
-                                ? 'bg-emerald-50 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-800'
-                                : 'bg-amber-50 border-amber-300 dark:bg-amber-950/40 dark:border-amber-800'
+                                ? 'bg-emerald-50 border-emerald-300 dark:bg-emerald-950/50 dark:border-emerald-800'
+                                : lastNotification.type === 'unmatched'
+                                  ? 'bg-rose-50 border-rose-300 dark:bg-rose-950/50 dark:border-rose-800'
+                                  : 'bg-amber-50 border-amber-300 dark:bg-amber-950/50 dark:border-amber-800'
                         }`}
                     >
                         <Text
                             className={`text-xs font-semibold flex-1 ${
                                 lastNotification.type === 'success'
                                     ? 'text-emerald-800 dark:text-emerald-200'
-                                    : 'text-amber-800 dark:text-amber-200'
+                                    : lastNotification.type === 'unmatched'
+                                      ? 'text-rose-800 dark:text-rose-200'
+                                      : 'text-amber-800 dark:text-amber-200'
                             }`}
                         >
                             {lastNotification.text}
@@ -260,47 +291,84 @@ export default function LiveAttendanceCaptureScreen() {
                 ) : null}
 
                 {/* Live Marked Roster Preview */}
-                <View className="gap-2">
-                    <Text variant="h3">Roster Status ({attendanceList.length})</Text>
+                <View className="gap-2.5">
+                    <View className="flex-row items-center justify-between">
+                        <Text variant="h3">Class Roster ({presentCount}/{attendanceList.length} Present)</Text>
+                    </View>
+                    <Text variant="caption" tone="muted">
+                        Students start as Absent when session begins. Live face scans update them to Present.
+                    </Text>
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ gap: 8 }}
+                        contentContainerStyle={{ gap: 10, paddingVertical: 4 }}
                     >
                         {attendanceList.map((st) => {
                             const isPresent = st.status === 'present';
+                            const nameParts = st.fullName.trim().split(/\s+/);
+                            const initialsStr = (
+                                (nameParts[0]?.[0] ?? '') + (nameParts[nameParts.length - 1]?.[0] ?? '')
+                            ).toUpperCase();
+
                             return (
-                                <Card
+                                <View
                                     key={st.studentId}
-                                    padding="sm"
-                                    className={`w-28 h-20 items-center justify-center border ${
+                                    className={`w-36 p-3.5 rounded-2xl border items-center justify-between gap-2 ${
                                         isPresent
-                                            ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30'
-                                            : 'border-border bg-card'
+                                            ? 'bg-emerald-50/70 border-emerald-500/80 dark:bg-emerald-950/40 dark:border-emerald-500/60'
+                                            : 'bg-card border-border'
                                     }`}
                                 >
-                                    <Text
-                                        variant="label"
-                                        numberOfLines={1}
-                                        className="text-center text-xs"
-                                    >
-                                        {st.fullName}
-                                    </Text>
-                                    <Text variant="caption" tone="muted" numberOfLines={1}>
-                                        Roll #{st.rollNo}
-                                    </Text>
+                                    {/* Avatar / Status Circle */}
                                     <View
-                                        className={`mt-1 px-2 py-0.5 rounded-full ${
+                                        className={`h-10 w-10 rounded-full items-center justify-center ${
                                             isPresent
-                                                ? 'bg-emerald-500'
-                                                : 'bg-gray-300 dark:bg-gray-700'
+                                                ? 'bg-emerald-500/20'
+                                                : 'bg-gray-100 dark:bg-gray-800'
                                         }`}
                                     >
-                                        <Text className="text-[10px] font-bold text-white uppercase">
+                                        {isPresent ? (
+                                            <Icon name="check" size={20} color="#059669" />
+                                        ) : (
+                                            <Text className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                                                {initialsStr}
+                                            </Text>
+                                        )}
+                                    </View>
+
+                                    {/* Student Info */}
+                                    <View className="items-center w-full">
+                                        <Text
+                                            variant="label"
+                                            numberOfLines={1}
+                                            className="text-center text-xs font-bold w-full"
+                                        >
+                                            {st.fullName}
+                                        </Text>
+                                        <Text variant="caption" tone="muted" numberOfLines={1} className="text-[11px] mt-0.5">
+                                            Roll #{st.rollNo}
+                                        </Text>
+                                    </View>
+
+                                    {/* Status Badge */}
+                                    <View
+                                        className={`px-3 py-0.5 rounded-full border ${
+                                            isPresent
+                                                ? 'bg-emerald-500/20 border-emerald-500/40'
+                                                : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                                        }`}
+                                    >
+                                        <Text
+                                            className={`text-[10px] font-bold uppercase tracking-wider ${
+                                                isPresent
+                                                    ? 'text-emerald-700 dark:text-emerald-300'
+                                                    : 'text-gray-500 dark:text-gray-400'
+                                            }`}
+                                        >
                                             {isPresent ? 'Present' : 'Absent'}
                                         </Text>
                                     </View>
-                                </Card>
+                                </View>
                             );
                         })}
                     </ScrollView>

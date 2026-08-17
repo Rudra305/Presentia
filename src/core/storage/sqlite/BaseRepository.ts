@@ -69,6 +69,27 @@ export abstract class BaseRepository<T extends BaseEntity> {
 
     // ── Writes ───────────────────────────────────────────────────────────
 
+    protected async enqueueSync(
+        entityId: string,
+        op: 'create' | 'update' | 'delete',
+        payload: Record<string, unknown>,
+    ): Promise<void> {
+        if (
+            this.tableName === '_meta' ||
+            this.tableName === 'sync_queue' ||
+            this.tableName === 'audit_log'
+        ) {
+            return;
+        }
+        try {
+            const { SyncQueueRepo } = await import('@/features/sync/repo');
+            const queueRepo = new SyncQueueRepo(this.db);
+            await queueRepo.enqueue(this.tableName, entityId, op, payload);
+        } catch {
+            // Non-blocking sync safeguard
+        }
+    }
+
     /**
      * Insert a new entity. Caller supplies feature-specific fields via
      * `NewEntity<T>`; the base generates id + audit + sync columns.
@@ -95,6 +116,7 @@ export abstract class BaseRepository<T extends BaseEntity> {
             sql,
             cols.map((c) => row[c] as SqlValue),
         );
+        await this.enqueueSync(entity.id, 'create', row as Record<string, unknown>);
         return entity;
     }
 
@@ -118,6 +140,7 @@ export abstract class BaseRepository<T extends BaseEntity> {
         const params = cols.map((c) => row[c] as SqlValue);
         params.push(id);
         await this.db.runAsync(`UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`, params);
+        await this.enqueueSync(id, 'update', row as Record<string, unknown>);
         return merged;
     }
 
@@ -130,6 +153,7 @@ export abstract class BaseRepository<T extends BaseEntity> {
        WHERE id = ? AND deleted_at IS NULL`,
             [now, now, id],
         );
+        await this.enqueueSync(id, 'delete', { id, deletedAt: now });
     }
 
     async hardDelete(id: string): Promise<void> {

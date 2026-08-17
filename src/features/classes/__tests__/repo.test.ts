@@ -13,7 +13,7 @@ describe('ClassRepo', () => {
     beforeEach(async () => {
         db = BetterSqliteAdapter.open();
         await runMigrations(db);
-        const seed = await seedDev(db);
+        const seed = await seedDev(db, { includeDemoData: true });
         tenantId = seed.tenantId;
         classRepo = new ClassRepo(db);
         teacherRepo = new TeacherRepo(db);

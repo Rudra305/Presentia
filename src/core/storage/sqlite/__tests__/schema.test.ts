@@ -15,7 +15,7 @@ describe('schema relationships & constraints', () => {
     });
 
     it('enforces UNIQUE(tenant_id, class_id, roll_no) on students', async () => {
-        const { tenantId, classIds } = await seedDev(db);
+        const { tenantId, classIds } = await seedDev(db, { includeDemoData: true });
         const classId = classIds[0]!;
         await expect(
             db.runAsync(
@@ -29,7 +29,7 @@ describe('schema relationships & constraints', () => {
     });
 
     it('enforces role CHECK constraint on users', async () => {
-        const { tenantId } = await seedDev(db);
+        const { tenantId } = await seedDev(db, { includeDemoData: true });
         await expect(
             db.runAsync(
                 `INSERT INTO users
@@ -42,7 +42,7 @@ describe('schema relationships & constraints', () => {
     });
 
     it('cascades student delete when its class is hard-deleted', async () => {
-        const { classIds } = await seedDev(db);
+        const { classIds } = await seedDev(db, { includeDemoData: true });
         const classId = classIds[0]!;
         const before = await db.getFirstAsync<{ c: number }>(
             'SELECT COUNT(*) AS c FROM students WHERE class_id = ?',
@@ -60,7 +60,7 @@ describe('schema relationships & constraints', () => {
     });
 
     it('sets teacher_id to NULL on classes when a teacher user is deleted', async () => {
-        const { teacherIds } = await seedDev(db);
+        const { teacherIds } = await seedDev(db, { includeDemoData: true });
         const teacherId = teacherIds[0]!;
         await db.runAsync('DELETE FROM users WHERE id = ?', [teacherId]);
         const rows = await db.getAllAsync<{ teacher_id: string | null }>(
@@ -71,7 +71,7 @@ describe('schema relationships & constraints', () => {
     });
 
     it('enforces UNIQUE(session_id, student_id) on attendance_records', async () => {
-        const { studentIds, teacherIds, classIds } = await seedDev(db);
+        const { studentIds, teacherIds, classIds } = await seedDev(db, { includeDemoData: true });
         const sessionId = 'sess-1';
         await db.runAsync(
             `INSERT INTO sessions
@@ -105,7 +105,7 @@ describe('schema relationships & constraints', () => {
     });
 
     it('rejects invalid attendance status via CHECK constraint', async () => {
-        const { studentIds, teacherIds, classIds } = await seedDev(db);
+        const { studentIds, teacherIds, classIds } = await seedDev(db, { includeDemoData: true });
         await db.runAsync(
             `INSERT INTO sessions
         (id, class_id, teacher_id, started_at, status,

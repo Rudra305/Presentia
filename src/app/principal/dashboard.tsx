@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -49,17 +49,11 @@ export default function PrincipalDashboardScreen() {
         });
     }, []);
 
-    useEffect(() => {
-        let mounted = true;
-        void (async () => {
-            if (mounted) {
-                await load();
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, [load]);
+    useFocusEffect(
+        useCallback(() => {
+            void load();
+        }, [load]),
+    );
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);

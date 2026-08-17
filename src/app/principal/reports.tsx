@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { View, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon } from '@/core/ui/atoms/Icon';
 import { Text } from '@/core/ui/atoms/Text';
 import { Card } from '@/core/ui/molecules/Card';
+import { Dropdown } from '@/core/ui/molecules/Dropdown';
 import { useAuth } from '@/features/auth';
+import { getClassRepo, type ClassWithDetails } from '@/features/classes';
+import { ensureSeedTenant } from '@/features/teachers';
 import {
     getReportsRepo,
     StatCard,
@@ -20,9 +24,10 @@ type DateFilterMode = 'all' | 'week' | 'month';
 
 export default function PrincipalReportsScreen() {
     const { session } = useAuth();
-    const tenantId = 'tenant_default';
 
     const [filterMode, setFilterMode] = useState<DateFilterMode>('all');
+    const [selectedClassId, setSelectedClassId] = useState<string>('');
+    const [availableClasses, setAvailableClasses] = useState<ClassWithDetails[]>([]);
     const [refreshing, setRefreshing] = useState(false);
 
     const [stats, setStats] = useState<AttendanceOverviewStats | null>(null);
@@ -30,9 +35,14 @@ export default function PrincipalReportsScreen() {
     const [studentSummaries, setStudentSummaries] = useState<StudentAttendanceSummary[]>([]);
     const [weeklyTrend, setWeeklyTrend] = useState<WeeklyTrendPoint[]>([]);
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
+            const tenantId = await ensureSeedTenant();
             const repo = await getReportsRepo();
+            const classRepo = await getClassRepo();
+
+            const classes = await classRepo.listWithDetails(tenantId);
+            setAvailableClasses(classes);
 
             let startDate: string | undefined;
             if (filterMode === 'week') {
@@ -45,13 +55,13 @@ export default function PrincipalReportsScreen() {
                 startDate = d.toISOString().split('T')[0];
             }
 
-            const filter = { startDate };
+            const filter = { startDate, classId: selectedClassId || undefined };
 
             const [overviewData, classesData, studentsData, trendData] = await Promise.all([
                 repo.getOverviewStats(tenantId, filter),
                 repo.getClassSummaries(tenantId, filter),
-                repo.getStudentSummaries(tenantId, undefined, filter),
-                repo.getWeeklyTrend(tenantId),
+                repo.getStudentSummaries(tenantId, selectedClassId || undefined, filter),
+                repo.getWeeklyTrend(tenantId, selectedClassId || undefined),
             ]);
 
             setStats(overviewData);
@@ -61,11 +71,13 @@ export default function PrincipalReportsScreen() {
         } catch (err) {
             console.error('Error loading reports:', err);
         }
-    };
+    }, [filterMode, selectedClassId]);
 
-    useEffect(() => {
-        void loadData();
-    }, [tenantId, filterMode]);
+    useFocusEffect(
+        useCallback(() => {
+            void loadData();
+        }, [loadData]),
+    );
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -74,6 +86,14 @@ export default function PrincipalReportsScreen() {
     };
 
     const lowAttendanceStudents = studentSummaries.filter((s) => s.isLowAttendance);
+
+    const classOptions = [
+        { label: 'All Classes', value: '' },
+        ...availableClasses.map((c) => ({
+            label: `${c.name} (${c.grade || ''}${c.section || ''})`,
+            value: c.id,
+        })),
+    ];
 
     return (
         <SafeAreaView
@@ -94,36 +114,51 @@ export default function PrincipalReportsScreen() {
                 </View>
 
                 {/* Date Filter Pills */}
-                <View className="flex-row gap-2">
-                    {(['all', 'week', 'month'] as DateFilterMode[]).map((mode) => {
-                        const active = filterMode === mode;
-                        const label =
-                            mode === 'all'
-                                ? 'All Time'
-                                : mode === 'week'
-                                  ? 'Past 7 Days'
-                                  : 'Past 30 Days';
-                        return (
-                            <Pressable
-                                key={mode}
-                                onPress={() => setFilterMode(mode)}
-                                className={`px-3.5 py-1.5 rounded-full border ${
-                                    active
-                                        ? 'bg-primary border-primary'
-                                        : 'bg-bg-elevated border-border'
-                                }`}
-                            >
-                                <Text
-                                    variant="caption"
-                                    tone={active ? 'inverse' : 'muted'}
-                                    className="font-semibold"
+                <View className="gap-1.5">
+                    <Text variant="caption" tone="muted">Time Range:</Text>
+                    <View className="flex-row gap-2">
+                        {(['all', 'week', 'month'] as DateFilterMode[]).map((mode) => {
+                            const active = filterMode === mode;
+                            const label =
+                                mode === 'all'
+                                    ? 'All Time'
+                                    : mode === 'week'
+                                      ? 'Past 7 Days'
+                                      : 'Past 30 Days';
+                            return (
+                                <Pressable
+                                    key={mode}
+                                    onPress={() => setFilterMode(mode)}
+                                    className={`px-3.5 py-1.5 rounded-full border ${
+                                        active
+                                            ? 'bg-primary border-primary'
+                                            : 'bg-bg-elevated border-border'
+                                    }`}
                                 >
-                                    {label}
-                                </Text>
-                            </Pressable>
-                        );
-                    })}
+                                    <Text
+                                        variant="caption"
+                                        tone={active ? 'inverse' : 'muted'}
+                                        className="font-semibold"
+                                    >
+                                        {label}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
                 </View>
+
+                {/* Class Filter Selector Dropdown */}
+                {availableClasses.length > 0 ? (
+                    <Dropdown
+                        label="Filter by Class"
+                        placeholder="Select a class..."
+                        options={classOptions}
+                        selectedValue={selectedClassId}
+                        onSelect={(val) => setSelectedClassId(val)}
+                        testID="reports-class-dropdown"
+                    />
+                ) : null}
 
                 {/* 2x2 Overview Stat Cards Grid */}
                 <View className="flex-row flex-wrap gap-3" testID="reports-overview">
@@ -183,6 +218,58 @@ export default function PrincipalReportsScreen() {
                         classSummaries.map((summary) => (
                             <ClassReportCard key={summary.classId} summary={summary} />
                         ))
+                    )}
+                </View>
+
+                {/* Full Student Attendance Roster */}
+                <View className="gap-3">
+                    <Text variant="h3">Student Attendance Roster ({studentSummaries.length})</Text>
+
+                    {studentSummaries.length === 0 ? (
+                        <Card padding="lg" className="items-center justify-center">
+                            <Text variant="body" tone="muted">
+                                No student attendance recorded yet. Select a class or take attendance.
+                            </Text>
+                        </Card>
+                    ) : (
+                        <Card padding="md" className="gap-2">
+                            {studentSummaries.map((st) => {
+                                const isGood = st.attendancePercentage >= 75;
+                                const badgeBg = isGood
+                                    ? 'bg-emerald-500/10 border-emerald-500/20'
+                                    : 'bg-rose-500/10 border-rose-500/20';
+                                const badgeText = isGood
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : 'text-rose-600 dark:text-rose-400';
+
+                                return (
+                                    <View
+                                        key={st.studentId}
+                                        className="flex-row justify-between items-center py-2.5 border-b border-border last:border-b-0"
+                                    >
+                                        <View className="gap-0.5 flex-1 mr-3">
+                                            <Text variant="body" className="font-semibold">
+                                                {st.fullName}
+                                            </Text>
+                                            <Text variant="caption" tone="muted">
+                                                Roll #{st.rollNo} • Class: {st.className}
+                                            </Text>
+                                        </View>
+
+                                        <View className="items-end gap-1">
+                                            <View className={`px-2.5 py-0.5 rounded-full border ${badgeBg}`}>
+                                                <Text className={`text-[11px] font-bold ${badgeText}`}>
+                                                    {st.attendancePercentage}%
+                                                </Text>
+                                            </View>
+                                            <Text variant="caption" tone="subtle" className="text-[10px]">
+                                                {st.presentCount} / {st.totalSessions} present
+                                            </Text>
+                                        </View>
+                                    </View>
+                                );
+                            })}
+                        </Card>
                     )}
                 </View>
 

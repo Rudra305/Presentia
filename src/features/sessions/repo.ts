@@ -59,10 +59,39 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
         const id = uuid();
         const now = nowEpochMs();
 
+        let effectiveTeacherId = payload.teacherId;
+        if (effectiveTeacherId) {
+            const exists = await this.db.getFirstAsync<{ id: string }>(
+                'SELECT id FROM users WHERE id = ?',
+                [effectiveTeacherId],
+            );
+            if (!exists) effectiveTeacherId = '';
+        }
+
+        if (!effectiveTeacherId) {
+            // Find class teacher or fallback to any active user
+            const cls = await this.db.getFirstAsync<{ teacher_id: string }>(
+                'SELECT teacher_id FROM classes WHERE id = ?',
+                [payload.classId],
+            );
+            if (cls?.teacher_id) {
+                effectiveTeacherId = cls.teacher_id;
+            } else {
+                const user = await this.db.getFirstAsync<{ id: string }>(
+                    "SELECT id FROM users WHERE role IN ('teacher', 'principal') LIMIT 1",
+                );
+                if (user) effectiveTeacherId = user.id;
+            }
+        }
+
+        if (!effectiveTeacherId) {
+            throw new Error('No valid teacher account found to associate with this session.');
+        }
+
         const entity: SessionEntity = {
             id,
             classId: payload.classId,
-            teacherId: payload.teacherId,
+            teacherId: effectiveTeacherId,
             periodLabel: payload.periodLabel?.trim() || null,
             startedAt: now,
             endedAt: null,
@@ -86,7 +115,12 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
         teacherId: string,
         classId?: string,
     ): Promise<SessionWithDetails | null> {
-        const params: SqlValue[] = [teacherId];
+        const params: SqlValue[] = [];
+        let teacherClause = '';
+        if (teacherId) {
+            teacherClause = 's.teacher_id = ? AND ';
+            params.push(teacherId);
+        }
         let classClause = '';
         if (classId) {
             classClause = 'AND s.class_id = ?';
@@ -107,7 +141,7 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
       FROM sessions s
       LEFT JOIN classes c ON s.class_id = c.id AND c.deleted_at IS NULL
       LEFT JOIN users u ON s.teacher_id = u.id
-      WHERE s.teacher_id = ? AND s.status = 'open' AND s.deleted_at IS NULL ${classClause}
+      WHERE ${teacherClause}s.status = 'open' AND s.deleted_at IS NULL ${classClause}
       ORDER BY s.started_at DESC
       LIMIT 1;
     `;
@@ -171,6 +205,30 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
     async markAttendance(payload: MarkAttendancePayload): Promise<AttendanceRecordEntity> {
         const now = nowEpochMs();
 
+        let effectiveMarkedBy = payload.markedBy;
+        if (effectiveMarkedBy) {
+            const exists = await this.db.getFirstAsync<{ id: string }>(
+                'SELECT id FROM users WHERE id = ?',
+                [effectiveMarkedBy],
+            );
+            if (!exists) effectiveMarkedBy = '';
+        }
+
+        if (!effectiveMarkedBy) {
+            const session = await this.db.getFirstAsync<{ teacher_id: string }>(
+                'SELECT teacher_id FROM sessions WHERE id = ?',
+                [payload.sessionId],
+            );
+            if (session?.teacher_id) {
+                effectiveMarkedBy = session.teacher_id;
+            } else {
+                const user = await this.db.getFirstAsync<{ id: string }>(
+                    "SELECT id FROM users WHERE role IN ('teacher', 'principal') LIMIT 1",
+                );
+                if (user) effectiveMarkedBy = user.id;
+            }
+        }
+
         // Check existing record
         const findSql = `SELECT * FROM attendance_records WHERE session_id = ? AND student_id = ? AND deleted_at IS NULL`;
         const existing = await this.db.getFirstAsync<Record<string, SqlValue>>(findSql, [
@@ -202,13 +260,23 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
             payload.studentId,
             payload.status,
             now,
-            payload.markedBy,
+            effectiveMarkedBy,
             payload.method,
             payload.confidence ?? null,
             now,
             now,
             version,
         ]);
+
+        await this.enqueueSync(recId, existing ? 'update' : 'create', {
+            id: recId,
+            sessionId: payload.sessionId,
+            studentId: payload.studentId,
+            status: payload.status,
+            markedBy: payload.markedBy,
+            method: payload.method,
+            confidence: payload.confidence ?? null,
+        });
 
         return {
             id: recId,
@@ -281,6 +349,18 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
         const session = await this.findById(sessionId);
         if (!session) throw new Error('Session not found');
 
+        let effectiveTeacherId = teacherId;
+        if (effectiveTeacherId) {
+            const exists = await this.db.getFirstAsync<{ id: string }>(
+                'SELECT id FROM users WHERE id = ?',
+                [effectiveTeacherId],
+            );
+            if (!exists) effectiveTeacherId = '';
+        }
+        if (!effectiveTeacherId) {
+            effectiveTeacherId = session.teacherId;
+        }
+
         await this.db.withTransactionAsync(async () => {
             // 1. Mark un-scanned students as 'absent'
             const unScannedSql = `
@@ -305,7 +385,7 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
                     sessionId,
                     st.id,
                     now,
-                    teacherId,
+                    effectiveTeacherId,
                     now,
                     now,
                 ]);
@@ -325,6 +405,20 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
      * List recent sessions for a teacher.
      */
     async listRecentSessions(teacherId: string, limit = 20): Promise<SessionWithDetails[]> {
+        const params: SqlValue[] = [];
+        let teacherClause = '';
+        if (teacherId) {
+            const user = await this.db.getFirstAsync<{ role: string }>(
+                'SELECT role FROM users WHERE id = ?',
+                [teacherId],
+            );
+            if (user && user.role !== 'principal') {
+                teacherClause = 's.teacher_id = ? AND ';
+                params.push(teacherId);
+            }
+        }
+        params.push(limit);
+
         const sql = `
       SELECT 
         s.*,
@@ -339,12 +433,12 @@ export class SessionRepo extends BaseRepository<SessionEntity> {
       FROM sessions s
       LEFT JOIN classes c ON s.class_id = c.id AND c.deleted_at IS NULL
       LEFT JOIN users u ON s.teacher_id = u.id
-      WHERE s.teacher_id = ? AND s.deleted_at IS NULL
+      WHERE ${teacherClause}s.deleted_at IS NULL
       ORDER BY s.started_at DESC
       LIMIT ?;
     `;
 
-        const rows = await this.db.getAllAsync<Record<string, SqlValue>>(sql, [teacherId, limit]);
+        const rows = await this.db.getAllAsync<Record<string, SqlValue>>(sql, params);
         return rows.map((row) => ({
             ...this.fromRow(row),
             className: (row.class_name ?? null) as string | null,

@@ -20,13 +20,19 @@ export interface SeedResult {
     studentIds: string[];
 }
 
-export async function seedDev(db: SQLiteAdapter): Promise<SeedResult> {
-    const now = nowEpochMs();
+export interface SeedOptions {
+    includeDemoData?: boolean;
+}
 
-    // Skip if we've seeded before.
+export async function seedDev(db: SQLiteAdapter, options: SeedOptions = {}): Promise<SeedResult> {
+    const now = nowEpochMs();
+    const includeDemoData = options.includeDemoData ?? false;
+
+    // Check if tenant already exists.
     const existing = await db.getFirstAsync<{ id: string }>('SELECT id FROM tenants WHERE id = ?', [
         SEED_TENANT_ID,
     ]);
+
     if (existing) {
         const users = await db.getAllAsync<{ id: string; role: string }>(
             'SELECT id, role FROM users WHERE tenant_id = ?',
@@ -49,15 +55,24 @@ export async function seedDev(db: SQLiteAdapter): Promise<SeedResult> {
         };
     }
 
+    if (!includeDemoData) {
+        // Clear any default/mock teachers, classes, and students from SQLite database
+        await db.runAsync('DELETE FROM students WHERE tenant_id = ?', [SEED_TENANT_ID]);
+        await db.runAsync('DELETE FROM classes WHERE tenant_id = ?', [SEED_TENANT_ID]);
+        await db.runAsync("DELETE FROM users WHERE tenant_id = ? AND role = 'teacher'", [
+            SEED_TENANT_ID,
+        ]);
+    }
+
     const principalId = uuid();
-    const teacherIds = [uuid(), uuid()];
-    const classIds = [uuid(), uuid(), uuid()];
+    const teacherIds = includeDemoData ? [uuid(), uuid()] : [];
+    const classIds = includeDemoData ? [uuid(), uuid(), uuid()] : [];
     const studentIds: string[] = [];
 
     await db.withTransactionAsync(async () => {
         await db.runAsync(
             'INSERT INTO tenants (id, name, code, created_at, updated_at) VALUES (?,?,?,?,?)',
-            [SEED_TENANT_ID, 'Emerald Grove Academy', 'EGA-2026', now, now],
+            [SEED_TENANT_ID, 'Presentia Academy', 'PRE-2026', now, now],
         );
 
         await db.runAsync(
@@ -80,86 +95,88 @@ export async function seedDev(db: SQLiteAdapter): Promise<SeedResult> {
             ],
         );
 
-        const teacherProfiles = [
-            { name: 'Mr. Ravi Menon', email: 'ravi.menon@ega.school' },
-            { name: 'Ms. Lin Wei', email: 'lin.wei@ega.school' },
-        ];
-        for (let i = 0; i < teacherIds.length; i++) {
-            const id = teacherIds[i]!;
-            const p = teacherProfiles[i]!;
-            await db.runAsync(
-                `INSERT INTO users
-          (id, tenant_id, role, full_name, email, biometric_enrolled, status,
-           created_at, updated_at, version, sync_status)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-                [
-                    id,
-                    SEED_TENANT_ID,
-                    'teacher',
-                    p.name,
-                    p.email,
-                    1,
-                    'active',
-                    now,
-                    now,
-                    1,
-                    'synced',
-                ],
-            );
-        }
-
-        const classProfiles = [
-            { name: 'Grade 5 · Section A', grade: '5', section: 'A', teacherId: teacherIds[0]! },
-            { name: 'Grade 5 · Section B', grade: '5', section: 'B', teacherId: teacherIds[0]! },
-            { name: 'Grade 6 · Section A', grade: '6', section: 'A', teacherId: teacherIds[1]! },
-        ];
-        for (let i = 0; i < classIds.length; i++) {
-            const id = classIds[i]!;
-            const c = classProfiles[i]!;
-            await db.runAsync(
-                `INSERT INTO classes
-          (id, tenant_id, name, grade, section, teacher_id,
-           created_at, updated_at, version, sync_status)
-         VALUES (?,?,?,?,?,?,?,?,?,?)`,
-                [
-                    id,
-                    SEED_TENANT_ID,
-                    c.name,
-                    c.grade,
-                    c.section,
-                    c.teacherId,
-                    now,
-                    now,
-                    1,
-                    'synced',
-                ],
-            );
-        }
-
-        // 5 students per class, unique roll numbers per class.
-        const firstNames = ['Aarav', 'Bianca', 'Chen', 'Daniela', 'Ekene'];
-        const lastNames = ['Patel', 'Rossi', 'Wang', 'Silva', 'Adeyemi'];
-        for (const classId of classIds) {
-            for (let i = 0; i < 5; i++) {
-                const sid = uuid();
-                studentIds.push(sid);
+        if (includeDemoData) {
+            const teacherProfiles = [
+                { name: 'Mr. Ravi Menon', email: 'ravi.menon@ega.school' },
+                { name: 'Ms. Lin Wei', email: 'lin.wei@ega.school' },
+            ];
+            for (let i = 0; i < teacherIds.length; i++) {
+                const id = teacherIds[i]!;
+                const p = teacherProfiles[i]!;
                 await db.runAsync(
-                    `INSERT INTO students
-            (id, tenant_id, class_id, roll_no, full_name,
-             created_at, updated_at, version, sync_status)
-           VALUES (?,?,?,?,?,?,?,?,?)`,
+                    `INSERT INTO users
+              (id, tenant_id, role, full_name, email, biometric_enrolled, status,
+               created_at, updated_at, version, sync_status)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
                     [
-                        sid,
+                        id,
                         SEED_TENANT_ID,
-                        classId,
-                        String(i + 1).padStart(2, '0'),
-                        `${firstNames[i]} ${lastNames[i]}`,
+                        'teacher',
+                        p.name,
+                        p.email,
+                        1,
+                        'active',
                         now,
                         now,
                         1,
                         'synced',
                     ],
                 );
+            }
+
+            const classProfiles = [
+                { name: 'Grade 5 · Section A', grade: '5', section: 'A', teacherId: teacherIds[0]! },
+                { name: 'Grade 5 · Section B', grade: '5', section: 'B', teacherId: teacherIds[0]! },
+                { name: 'Grade 6 · Section A', grade: '6', section: 'A', teacherId: teacherIds[1]! },
+            ];
+            for (let i = 0; i < classIds.length; i++) {
+                const id = classIds[i]!;
+                const c = classProfiles[i]!;
+                await db.runAsync(
+                    `INSERT INTO classes
+              (id, tenant_id, name, grade, section, teacher_id,
+               created_at, updated_at, version, sync_status)
+             VALUES (?,?,?,?,?,?,?,?,?,?)`,
+                    [
+                        id,
+                        SEED_TENANT_ID,
+                        c.name,
+                        c.grade,
+                        c.section,
+                        c.teacherId,
+                        now,
+                        now,
+                        1,
+                        'synced',
+                    ],
+                );
+            }
+
+            // 5 students per class, unique roll numbers per class.
+            const firstNames = ['Aarav', 'Bianca', 'Chen', 'Daniela', 'Ekene'];
+            const lastNames = ['Patel', 'Rossi', 'Wang', 'Silva', 'Adeyemi'];
+            for (const classId of classIds) {
+                for (let i = 0; i < 5; i++) {
+                    const sid = uuid();
+                    studentIds.push(sid);
+                    await db.runAsync(
+                        `INSERT INTO students
+                (id, tenant_id, class_id, roll_no, full_name,
+                 created_at, updated_at, version, sync_status)
+               VALUES (?,?,?,?,?,?,?,?,?)`,
+                        [
+                            sid,
+                            SEED_TENANT_ID,
+                            classId,
+                            String(i + 1).padStart(2, '0'),
+                            `${firstNames[i]} ${lastNames[i]}`,
+                            now,
+                            now,
+                            1,
+                            'synced',
+                        ],
+                    );
+                }
             }
         }
     });

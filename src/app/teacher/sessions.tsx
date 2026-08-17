@@ -1,9 +1,9 @@
-import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, Card, Icon, Input, Modal, Text } from '@/core/ui';
+import { Button, Card, Dropdown, Icon, Input, Modal, Text } from '@/core/ui';
 import { useAuth } from '@/features/auth';
 import type { ClassEntity } from '@/features/classes';
 import { getClassRepo } from '@/features/classes';
@@ -76,9 +76,11 @@ export default function TeacherSessionsScreen() {
         }
     }, [teacherId, selectedClassId]);
 
-    useEffect(() => {
-        void loadData();
-    }, [loadData]);
+    useFocusEffect(
+        useCallback(() => {
+            void loadData();
+        }, [loadData]),
+    );
 
     const handleStartSession = async () => {
         if (!selectedClassId) {
@@ -303,46 +305,16 @@ export default function TeacherSessionsScreen() {
                                 </Text>
                             </Card>
                         ) : (
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={{ gap: 8 }}
-                            >
-                                {teacherClasses.map((cls) => {
-                                    const selected = cls.id === selectedClassId;
-                                    return (
-                                        <Pressable
-                                            key={cls.id}
-                                            onPress={() => setSelectedClassId(cls.id)}
-                                            style={{ width: 130, height: 76 }}
-                                        >
-                                            <Card
-                                                padding="sm"
-                                                className={`w-full h-full items-center justify-center border ${
-                                                    selected
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-border'
-                                                }`}
-                                            >
-                                                <Text
-                                                    variant="label"
-                                                    tone={selected ? 'primary' : 'default'}
-                                                    numberOfLines={1}
-                                                >
-                                                    {cls.name}
-                                                </Text>
-                                                <Text
-                                                    variant="caption"
-                                                    tone="muted"
-                                                    numberOfLines={1}
-                                                >
-                                                    {cls.grade} {cls.section ?? ''}
-                                                </Text>
-                                            </Card>
-                                        </Pressable>
-                                    );
-                                })}
-                            </ScrollView>
+                            <Dropdown
+                                placeholder="Choose a class..."
+                                options={teacherClasses.map((c) => ({
+                                    label: `${c.name} (${c.grade || ''}${c.section || ''})`,
+                                    value: c.id,
+                                }))}
+                                selectedValue={selectedClassId}
+                                onSelect={(val) => setSelectedClassId(val)}
+                                testID="modal-class-dropdown"
+                            />
                         )}
                     </View>
 

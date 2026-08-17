@@ -13,7 +13,7 @@ describe('SessionRepo Unit Tests', () => {
     beforeEach(async () => {
         db = BetterSqliteAdapter.open();
         await runMigrations(db);
-        const seed = await seedDev(db);
+        const seed = await seedDev(db, { includeDemoData: true });
         teacherId = seed.teacherIds[0]!;
         classId = seed.classIds[0]!;
         studentId = seed.studentIds[0]!;

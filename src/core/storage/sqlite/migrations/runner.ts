@@ -57,10 +57,8 @@ export async function runMigrations(
 
     let last = current;
     for (const migration of pending) {
-        await db.withTransactionAsync(async () => {
-            await db.execAsync(migration.sql);
-            await writeSchemaVersion(db, migration.version);
-        });
+        await db.execAsync(migration.sql);
+        await writeSchemaVersion(db, migration.version);
         last = migration.version;
     }
     return last;
