@@ -16,7 +16,9 @@
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",
         "build:apk": "cd android && gradlew assembleRelease",
-        "build:apk:preview": "eas build --platform android --profile preview"
+        "build:apk:preview": "eas build --platform android --profile preview",
+        "clean": "powershell -Command \"Remove-Item -Recurse -Force -ErrorAction SilentlyContinue 'android/app/build', 'android/build', 'android/app/.cxx', 'android/.gradle', '.expo', 'node_modules/.cache'\"",
+        "clean:apk": "yarn clean && cd android && gradlew assembleRelease"
     },
     "dependencies": {
         "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
