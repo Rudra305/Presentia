@@ -1,12 +1,26 @@
-# 📱 Student Attendance Mobile Application
+# 📱 Presentia — Student Attendance & Analytics Mobile App
 
-An offline-first, on-device AI-powered Student Attendance & Analytics System built with **Expo (SDK 54) + React Native 0.81 + TypeScript**.
+> **An offline-first, on-device AI-powered Student Attendance & Analytics Mobile Application** designed for modern schools and educational institutions. Built with **Expo (SDK 54) + React Native 0.81 + TypeScript**.
 
 [![Build Status](https://img.shields.io/badge/tests-84%20passed-emerald)](https://github.com/Rudra305/student_attendance)
 [![Expo SDK](https://img.shields.io/badge/Expo-SDK%2054-blue)](https://expo.dev)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61dafb)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+---
+
+## 📖 About The Project
+
+**Presentia** solves the daily operational friction of manual roll-calls and unreliable attendance tracking in schools. It offers instant face-recognition-powered attendance logging with zero cloud latency, functioning 100% offline with on-device SQLite storage, biometric security, role-based workflows for Principals and Teachers, and automated background synchronization when online.
+
+### 🌟 Key Highlights
+- ⚡ **100% Offline-First Architecture**: Powered by SQLite WAL mode with local biometric security and offline sync queue.
+- 🤖 **On-Device Facial Recognition**: High-speed live camera viewfinder face-matching with Cosine Similarity algorithms.
+- 👥 **Role-Based Experience**: Dedicated workspaces and privileges for **Principals** (administration, teacher management, school-wide analytics) and **Teachers** (class sessions, live marking, student enrollment).
+- 📊 **Real-Time Analytics & Trends**: 7-day visual attendance timeline, low-attendance alerts ($<75\%$), and student drill-downs.
+- 🌍 **Multilingual Support (i18n)**: Native zero-dependency localization for **English**, **Hindi**, and **Spanish**.
+- 🛡️ **Hardened Security & Privacy**: PII hashing with SHA-256 and encrypted payloads for student data protection.
 
 ---
 
@@ -122,10 +136,50 @@ cp .env.example .env
 
 ---
 
+### 📦 Building Release APK for Android
+
+You can generate a standalone, installable `.apk` file using either local Gradle or Expo Application Services (EAS):
+
+#### Method 1: Local Offline Build (Gradle) — *Fastest*
+Run from the project root:
+
+**On Windows (PowerShell):**
+```powershell
+npm run build:apk
+# Or manually:
+cd android
+.\gradlew.bat assembleRelease
+```
+
+**On macOS / Linux:**
+```bash
+cd android && ./gradlew assembleRelease
+```
+
+> 📍 **Output Location:**
+> The generated APK will be located at:
+> `android/app/build/outputs/apk/release/app-release.apk`
+
+---
+
+#### Method 2: Cloud / Local Build via EAS (Expo Application Services)
+If you prefer building without local Android SDK configuration:
+
+```bash
+# Build standalone installable APK in the cloud
+npx eas-cli build --platform android --profile preview
+
+# Or build locally using EAS CLI
+npx eas-cli build --platform android --profile preview --local
+```
+
+---
+
 ### 🧪 Running Tests & Verification Commands
 
 | Command | Description |
 | :--- | :--- |
+| `npm run build:apk` | Build local standalone **Release APK** (`assembleRelease`) |
 | `npm test` | Run Jest unit test suite (**15/15 passing, 84/84 tests**) |
 | `npm run typecheck` | Run TypeScript compiler type check (`tsc --noEmit`) |
 | `npm run lint` | Run ESLint static analysis |
