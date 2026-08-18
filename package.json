@@ -17,6 +17,7 @@
         "test:coverage": "jest --coverage",
         "build:apk": "cd android && gradlew assembleRelease",
         "build:apk:preview": "eas build --platform android --profile preview",
+        "sync:build": "node scripts/update-github-build-url.js",
         "clean": "powershell -Command \"Remove-Item -Recurse -Force -ErrorAction SilentlyContinue 'android/app/build', 'android/build', 'android/app/.cxx', 'android/.gradle', '.expo', 'node_modules/.cache'\"",
         "clean:apk": "yarn clean && cd android && gradlew assembleRelease"
     },

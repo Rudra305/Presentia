@@ -2,11 +2,14 @@
 
 > **An offline-first, on-device AI-powered Student Attendance & Analytics Mobile Application** designed for modern schools and educational institutions. Built with **Expo (SDK 54) + React Native 0.81 + TypeScript**.
 
+[![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-22c55e?style=for-the-badge&logo=android&logoColor=white)](https://expo.dev/accounts/ashutoshba/projects/presentia/builds/05ff628b-bc5d-4548-8635-ed48a8c0852a)
 [![Build Status](https://img.shields.io/badge/tests-84%20passed-emerald)](https://github.com/Rudra305/presentia)
 [![Expo SDK](https://img.shields.io/badge/Expo-SDK%2054-blue)](https://expo.dev)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61dafb)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+📲 **Latest Android APK Install**: [Download & Install APK](https://expo.dev/accounts/ashutoshba/projects/presentia/builds/05ff628b-bc5d-4548-8635-ed48a8c0852a)
 
 ---
 
