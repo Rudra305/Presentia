@@ -54,4 +54,6 @@ credentials.json
 
 # Artifacts
 .artifacts/
+.emergent/
+
 
