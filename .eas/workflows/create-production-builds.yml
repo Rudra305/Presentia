@@ -1,0 +1,13 @@
+name: Create Production & Preview Builds
+
+on:
+  push:
+    branches: ["main", "master"]
+
+jobs:
+  build_android:
+    name: Build Android Preview APK
+    type: build
+    params:
+      platform: android
+      profile: preview
