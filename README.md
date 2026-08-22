@@ -166,16 +166,19 @@ cd android && ./gradlew assembleRelease
 
 ---
 
-#### Method 2: Cloud / Local Build via EAS (Expo Application Services)
-If you prefer building without local Android SDK configuration:
+#### Method 2: Cloud Auto-Deployment via EAS Workflows (Expo Application Services)
 
-```bash
-# Build standalone installable APK in the cloud
-npx eas-cli build --platform android --profile preview
+Presentia utilizes **EAS Workflows** configured in [`.eas/workflows/create-production-builds.yml`](file:///c:/Ashutosh/Projects/Git/student_attendance/.eas/workflows/create-production-builds.yml) and [`.github/workflows/eas-build.yml`](file:///c:/Ashutosh/Projects/Git/student_attendance/.github/workflows/eas-build.yml):
 
-# Or build locally using EAS CLI
-npx eas-cli build --platform android --profile preview --local
-```
+- **Automatic Trigger**: Any `git push` to `main` or `master` triggers Expo Cloud to build an Android Preview APK.
+- **Manual EAS Cloud Build**:
+  ```bash
+  # Trigger build on Expo Cloud
+  eas build --platform android --profile preview
+
+  # Or build locally via EAS CLI
+  eas build --platform android --profile preview --local
+  ```
 
 ---
 
